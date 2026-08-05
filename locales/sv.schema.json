@@ -168,7 +168,8 @@
     "product_sku": "Lagerhållningsenhet",
     "layered_slideshow": "Bildspel med lager",
     "cart_drawer": "Varukorgspanel",
-    "disclosures": "Upplysningar"
+    "disclosures": "Upplysningar",
+    "cross_sell": "Korsförsäljning"
   },
   "settings": {
     "alignment": "Justering",
@@ -583,7 +584,9 @@
     "input_style": "Inmatningsstil",
     "selected_button_style": "Stil för vald knapp",
     "open_by_default": "Öppen som standard",
-    "title_preset": "Förinställning för rubrik"
+    "title_preset": "Förinställning för rubrik",
+    "cards_per_view": "Kort per vy",
+    "show_price": "Visa pris"
   },
   "options": {
     "apple": "Apple",
@@ -987,7 +990,8 @@
     "gift_card_products": "Presentkortsprodukter",
     "disclosures": "Upplysningar",
     "disclosures_metafield_content": "Obligatoriska säkerhetsvarningar och lagstadgad information för denna produkt.",
-    "page_text_color_contrast_info": "Sektioner med anpassad bakgrundsfärg använder endast den här textfärgen när färgkontrasten är tillräcklig."
+    "page_text_color_contrast_info": "Sektioner med anpassad bakgrundsfärg använder endast den här textfärgen när färgkontrasten är tillräcklig.",
+    "cross_sell_source": "Produkter hämtas från metafältet \"Cross-sell products\" på denna produkt (custom.cross_sell_products). Blocket visar inget här förrän kompletterande produkter har tilldelats."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Dela information om ditt varumärke med dina kunder. Beskriv en produkt, gör tillkännagivanden eller välkomna kunder till din butik.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Bästsäljare",
     "featured_collection": "Utvald produktserie",
     "new_arrivals": "Nyheter",
-    "disclosures": "Upplysningar"
+    "disclosures": "Upplysningar",
+    "pairs_with": "Passar till"
   },
   "info": {
     "video_alt_text": "Beskriv videon för användare av hjälpmedelsteknik",

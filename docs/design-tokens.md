@@ -2,7 +2,7 @@
 
 ![Reference design for the cross-sell widget](design-mockup.png)
 
-Derived from the reference screenshot. Everything below is a **read of the comp**, not a handoff from a design file — see *Method & confidence* before treating absolute pixel values as final.
+Derived from the reference screenshot and measured against the live theme. Everything below is a **read of the comp**, not a handoff from a design file — see *Method & confidence* for how the absolute values were derived.
 
 ---
 
@@ -22,24 +22,32 @@ The design has a clear, deliberate visual system. Naming it matters more than ma
 
 ## 2 · Method & confidence
 
-The screenshot is a **zoomed crop**, so absolute pixels can't be read directly. What *is* reliable is the set of **internal proportions**, which are scale-independent.
+The screenshot is a **zoomed crop**, so its absolute pixels were never directly usable — that part of the original method holds. What was wrong is the reference width it got de-scaled against: the first pass anchored a 56px select height, backed into a scale factor, and *guessed* a ~600px product-info column to make the numbers land. That column width was never derived from the screenshot. It needed to be measured in the theme, and it isn't 600px.
 
-Anchoring on a 56px select height (a standard premium control height) gives a scale factor of ≈ **0.31** from screenshot pixels to CSS pixels, and produces a coherent set of values: a **~400px card** in a **~600px product-info column** with the next card peeking. That matches the brief exactly — the widget lives *inside* the PDP info column, below Add to Cart.
+**Measured, not assumed:**
 
-| Measure | Observed ratio | Recommended CSS |
+- **750–1199px viewport** — `snippets/product-information-content.liquid:183` sets the media-left layout to `grid-template-columns: 1fr min(50vw, var(--sidebar-width))`, and `--sidebar-width: 25rem` in `snippets/theme-styles-variables.liquid:128` — a hard **400px ceiling** on the info column, reached at any viewport ≥800px.
+- **≥1200px viewport** — `snippets/product-information-content.liquid:298-303` switches to `grid-template-columns: 2fr 1fr`; at a 1440px viewport that resolves to roughly **453px**.
+- Both cases carry `padding-left: calc(var(--gap) / 2)` on `.product-details` (same file, line 190), and the template's `gap` setting is `48` (`templates/product.json`) — a flat **24px** lost before the widget ever sees the column.
+
+Net usable width: **351px at 750px → 376px across the 800–1199px plateau → ~429px at 1440px.** 376px is the anchor used below — it's the width that holds across the widest practical range, not a number chosen to make a ~1.5-cards-visible read feel tidy.
+
+The *proportions* read from the comp are still the right source for the internal relationships (image ÷ card, gap ÷ card, the type-scale ratios) — that part of the original method was sound. Only the reference width was wrong. This is an upgrade to the argument's confidence, not a retreat: it moves from *"estimated from a zoomed screenshot"* to *"measured in the theme,"* and it's also why question 1 in §11 no longer needs the client — the column width isn't a merchant-configurable full-width option, it's fixed by the theme's own product grid.
+
+| Measure | Observed ratio (screenshot) | Recommended CSS (at the 376px plateau) |
 |---|---|---|
-| Card width ÷ column width | 0.645 → ~1.5 cards visible | `400px` fluid, `clamp(300px, 78%, 420px)` |
-| Gap ÷ card width | 2.3% | `10px` |
-| Image column ÷ card width | 25.6% | `100px` |
-| Content column ÷ card width | 62.4% | `1fr` (~250px) |
-| Select width ÷ card width | 47.7% | `~190px` (`1fr`) |
-| Select ↔ ADD gap ÷ card width | 2.5% | `10px` |
-| Heading → first card | — | `32px` |
-| Heading font ÷ title font | 1.15 | `18px` / `16px` |
-| Title font ÷ price font | 1.26 | `16px` / `14px` |
-| Select height ÷ title font | 3.4 | `56px` |
+| Card width ÷ column width | 0.645 → initially read as ~1.5 cards visible | `clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px)`, `--cs-per-view: 1.3` → ~283px card |
+| Gap ÷ card width | 2.3% | `8px` |
+| Image column ÷ card width | 25.6% | `84px` (~30% of a 283px card) |
+| Content column ÷ card width | 62.4% | `1fr` → ~163px at a 283px card |
+| Select width ÷ card width | 47.7% | `1fr` → ~99px |
+| Select ↔ ADD gap ÷ card width | 2.5% | `8px` |
+| Heading → first card | — | `16px` |
+| Heading font ÷ title font | 1.15 | `13px` / `13px` — parity in size now; hierarchy carried entirely by tracking, weight and case (§4) |
+| Title font ÷ price font | 1.26 | `13px` / `12px` |
+| Select height ÷ title font | 3.4 | `44px` / `13px` ≈ 3.38 — the screenshot ratio holds almost exactly once the scale is real |
 
-> **Confirm with the client** whether the widget is column-width (~600px) or full content width (~1200px). If full-width, scale card width to ~640px and bump the type scale one step; all ratios hold.
+The card width moved further than a literal rescale of 0.645 would predict (0.645 × 376px ≈ 243px). The binding constraint isn't the screenshot ratio, it's the interior arithmetic: a `<select>` and an `ADD` button both need to clear their own accessible floors (`--cs-control-h: 44px`, matching the theme's `--minimum-touch-target`) inside a content column that's already lost 84px to the image and 24px to card padding. `--cs-per-view: 1.3` is the value that keeps every token at or above that floor while a fraction of the next card still peeks — the full arithmetic check is in §10. (The schema setting's `step: 0.1` — theme-check rejects steps that aren't a multiple of 0.1 — means `1.3` is the closest value to the theoretical optimum, not the optimum itself.)
 
 ---
 
@@ -55,14 +63,14 @@ Monochrome, five values, no accents.
 | `--cs-ink` | `#111111` | Headings, product name, price, active borders, active arrow | 16.5:1 on surface ✅ |
 | `--cs-ink-muted` | `#6B6B6B` | Secondary copy, helper text | 5.3:1 on white ✅ |
 | `--cs-ink-disabled` | `#B3B3B3` | Disabled `ADD` label | ~2.0:1 ⚠️ |
-| `--cs-border` | `#E3E3E3` | Resting select / button border | ~1.2:1 ⚠️ |
+| `--cs-border` | `#D0D0D0` | Resting select / button border | ~1.5:1 (up from ~1.2:1) |
 | `--cs-border-strong` | `#111111` | Focus / active border, 2px | — |
 | `--cs-arrow-idle` | `#9E9E9E` | Disabled carousel arrow | — |
 
-**Two flags worth raising with the client rather than silently copying:**
+**One flag resolved into a stated decision, one left as-is:**
 
-- `--cs-ink-disabled` at ~2:1 is technically exempt from WCAG 1.4.3 (disabled controls are), so reproducing it is defensible — but it should be a stated decision, not an accident.
-- `--cs-border` at ~1.2:1 fails **WCAG 1.4.11 (non-text contrast, 3:1)** if that border is the only thing identifying the control's boundary. Minimum compliant alternative: `#767676`. A middle path that keeps the light aesthetic: darken to `#D0D0D0` and keep the field on the white surface against the grey card, so the boundary reads from the surface change rather than the stroke alone.
+- `--cs-border` moves from `#E3E3E3` (~1.2:1 against white) to `#D0D0D0` (~1.5:1). That's a real step up, but read as an isolated stroke against the white field it still sits under the literal **WCAG 1.4.11** threshold (3:1 for a non-text UI boundary when the border is the only thing marking the control) — reaching that in full would need something close to `#767676` (~4.5:1), at real cost to the light aesthetic the reference specifies. The resting select in this spec is never delimited by the stroke alone, though: the white field sits on the grey `--cs-surface` card (§6, *Select*), so the boundary is also carried by a surface-colour change, and the state that actually needs to be unmistakable — the 2px `--cs-border-strong` focus/active border — already clears contrast by a wide margin. This is now a settled, documented trade-off rather than a question for the client.
+- `--cs-ink-disabled` at ~2:1 stays a stated decision, not an oversight: disabled controls are exempt from WCAG 1.4.3, so reproducing the comp's low-contrast disabled label is defensible.
 
 ---
 
@@ -83,10 +91,10 @@ For the prototype, prefer the **theme's existing font settings** for the content
 
 | Token | Size | Weight | Tracking | Case | Applied to |
 |---|---|---|---|---|---|
-| `--cs-fs-heading` | `18px` | 500 | `0.10em` | UPPER | `PAIRS WITH` (mono) |
-| `--cs-fs-title` | `16px` / lh 1.30 | 400 | `-0.01em` | Sentence | Product name (grotesque) |
-| `--cs-fs-price` | `14px` / lh 1.2 | 400 | `0` | — | Price (grotesque) |
-| `--cs-fs-label` | `12px` | 500 | `0.08em` | UPPER | `SIZE`, `ADD` (mono) |
+| `--cs-fs-heading` | `13px` (`0.8125rem`) | 500 | `0.10em` | UPPER | `PAIRS WITH` (mono) |
+| `--cs-fs-title` | `13px` / lh 1.30 | 400 | `-0.01em` | Sentence | Product name (grotesque) |
+| `--cs-fs-price` | `12px` / lh 1.2 | 400 | `0` | — | Price (grotesque) |
+| `--cs-fs-label` | `11px` | 500 | `0.08em` | UPPER | `SIZE`, `ADD` (mono) |
 
 Product titles clamp to **2 lines** (`-webkit-line-clamp: 2`) so card heights never diverge.
 
@@ -97,15 +105,17 @@ Product titles clamp to **2 lines** (`-webkit-line-clamp: 2`) so card heights ne
 | Token | Value | Use |
 |---|---|---|
 | `--cs-radius` | `0` | Everything. No exceptions. |
-| `--cs-gap-card` | `10px` | Between carousel cards |
-| `--cs-pad-card` | `16px` | Card inner padding |
-| `--cs-gap-media` | `16px` | Image column → content column |
-| `--cs-gap-stack` | `12px` | Title → price → controls |
-| `--cs-gap-controls` | `10px` | Select → ADD |
-| `--cs-space-header` | `32px` | Section heading → carousel |
-| `--cs-control-h` | `56px` | Select and ADD height (must match exactly) |
-| `--cs-media-w` | `100px` | Image column width |
-| `--cs-card-w` | `clamp(300px, 78%, 420px)` | Card width; yields ~1.5 visible |
+| `--cs-per-view` | `1.3` | Cards visible per viewport; drives `--cs-card-w` |
+| `--cs-gap-card` | `8px` | Between carousel cards |
+| `--cs-pad-card` | `12px` | Card inner padding |
+| `--cs-gap-media` | `12px` | Image column → content column |
+| `--cs-gap-stack` | `6px` | Title → price → controls |
+| `--cs-gap-controls` | `8px` | Select → ADD |
+| `--cs-space-header` | `16px` | Section heading → carousel |
+| `--cs-control-h` | `44px` | Select and ADD height (matches the theme's `--minimum-touch-target`, `theme-styles-variables.liquid:637`) |
+| `--cs-media-w` | `84px` | Image column width |
+| `--cs-add-min-w` | `56px` | Minimum width reserved for the ADD button inside the content column |
+| `--cs-card-w` | `clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px)` | Card width; resolves to the visible-cards ratio above |
 | `--cs-border-w` | `1px` | Resting border |
 | `--cs-border-w-strong` | `2px` | Focus / active border |
 
@@ -114,6 +124,10 @@ Product titles clamp to **2 lines** (`-webkit-line-clamp: 2`) so card heights ne
 ---
 
 ## 6 · Component specs
+
+### Overflow containment — non-negotiable
+
+Every level between the block root and the scroll-snap track needs `min-width: 0`: the block wrapper, the `<cross-sell-component>` host, the scroller (the element carrying `overflow-x`), and each card's content column. Any CSS grid placing these needs `minmax(0, 1fr)` instead of a bare `1fr` for the same reason. Skip it anywhere in that chain and a flex/grid item falls back to its `min-content`; for an `overflow-x` scroller, `min-content` is the width of its widest unbroken child, which forces the whole thing wider than its track — and since that track sits inside the PDP's own grid (`snippets/product-information-content.liquid`), the failure mode is the product-info column itself getting wider, not a harmless internal scrollbar.
 
 ### Section header
 Mono, uppercase, tracked, `--cs-ink`, left-aligned. Arrows pinned right on the same baseline row.
@@ -126,7 +140,7 @@ Mono, uppercase, tracked, `--cs-ink`, left-aligned. Arrows pinned right on the s
 - Hidden below 750px — swipe carries it there.
 
 ### Card
-`--cs-surface`, radius 0, no border, no shadow. CSS grid: `grid-template-columns: var(--cs-media-w) 1fr`, items centred vertically.
+`--cs-surface`, radius 0, no border, no shadow. CSS grid: `grid-template-columns: var(--cs-media-w) minmax(0, 1fr)`, items centred vertically.
 
 ### Product image
 `aspect-ratio: 1 / 1`, `object-fit: contain`, sits on the card surface with no wrapper background. `loading="lazy"`, `srcset` at 1x/2x of the rendered size, explicit `width`/`height` to prevent CLS.
@@ -135,7 +149,7 @@ Mono, uppercase, tracked, `--cs-ink`, left-aligned. Arrows pinned right on the s
 White field on the grey card, 1px `--cs-border`, `--cs-control-h`, mono uppercase label, custom chevron (16px, inline SVG as `background-image`, `appearance: none`), padding `0 40px 0 16px`.
 
 ### ADD button
-`--cs-control-h`, `min-width: 72px`, `padding: 0 16px`, mono uppercase label, radius 0.
+`--cs-control-h`, `min-width: var(--cs-add-min-w)`, `padding: 0 16px`, mono uppercase label, radius 0.
 
 ---
 
@@ -177,9 +191,9 @@ Transition `color`, `background-color`, `box-shadow` only — never `width`, `he
 
 | Breakpoint | Behaviour |
 |---|---|
-| **≥990px** | Card `400px`, horizontal layout, ~1.5 cards visible, arrows shown |
-| **750–989px** | Card `clamp(300px, 78%, 400px)`, same layout, arrows shown |
-| **<750px** | Card `min(86vw, 340px)` → ~1.15 cards visible (peek preserved), image column `84px`, control height `48px`, arrows hidden, swipe only |
+| **≥990px** | Column plateaus at 400px (the theme's `--sidebar-width` cap) down to 376px usable across 800–1199px viewports, growing to ~429px usable at 1440px; `--cs-card-w` resolves to **~283–324px** across that range, ~1.3 cards visible + peek, arrows shown |
+| **750–989px** | Column narrows toward **351px** usable at the low end (750px viewport); the same clamp holds without an override, but `--cs-add-min-w` steps down to `52px` so the ADD button doesn't crowd the select |
+| **<750px** | `--cs-card-w: clamp(232px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px)`, `--cs-media-w: 76px`, `--cs-control-h: 40px`, `--cs-gap-media: 10px`, arrows hidden — swipe only |
 
 Keep the horizontal card layout on mobile. Flipping to a stacked card doubles the widget's height right under the Add to Cart button, which is the worst possible place to add scroll depth on the highest-converting device.
 
@@ -196,31 +210,33 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
   --cs-ink:             #111111;
   --cs-ink-muted:       #6b6b6b;
   --cs-ink-disabled:    #b3b3b3;
-  --cs-border:          #e3e3e3;
+  --cs-border:          #d0d0d0;
   --cs-border-strong:   #111111;
   --cs-arrow-idle:      #9e9e9e;
 
   /* Type */
   --cs-font-mono:  ui-monospace, "SF Mono", "Roboto Mono", "IBM Plex Mono", Menlo, monospace;
-  --cs-font-body:  var(--font-body-family, "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif);
-  --cs-fs-heading: 18px;
-  --cs-fs-title:   16px;
-  --cs-fs-price:   14px;
-  --cs-fs-label:   12px;
+  --cs-font-body:  var(--font-body--family, "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif);
+  --cs-fs-heading: 13px; /* 0.8125rem */
+  --cs-fs-title:   13px;
+  --cs-fs-price:   12px;
+  --cs-fs-label:   11px;
   --cs-track-wide: 0.10em;
   --cs-track-label:0.08em;
 
   /* Space & geometry */
   --cs-radius:         0;
-  --cs-card-w:         clamp(300px, 78%, 420px);
-  --cs-media-w:        100px;
-  --cs-control-h:      56px;
-  --cs-gap-card:       10px;
-  --cs-pad-card:       16px;
-  --cs-gap-media:      16px;
-  --cs-gap-stack:      12px;
-  --cs-gap-controls:   10px;
-  --cs-space-header:   32px;
+  --cs-per-view:       1.3;
+  --cs-card-w:         clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px);
+  --cs-media-w:        84px;
+  --cs-control-h:      44px;
+  --cs-add-min-w:      56px;
+  --cs-gap-card:       8px;
+  --cs-pad-card:       12px;
+  --cs-gap-media:      12px;
+  --cs-gap-stack:      6px;
+  --cs-gap-controls:   8px;
+  --cs-space-header:   16px;
   --cs-border-w:       1px;
   --cs-border-w-strong:2px;
 
@@ -230,12 +246,27 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
   --cs-ease:     cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/*
+  Arithmetic check, 376px column (the 800–1199px plateau):
+  card     = (376 − 8) / 1.3               ≈ 283px
+  interior = 283 − (2 × 12 padding)          = 259px
+  content  = 259 − 84 media − 12 gap-media   = 163px
+  select   = 163 − 8 gap-controls − 56 ADD  ≈ 99px
+  → 1.3 cards laid out in full, plus a visible peek of the next one.
+*/
+
+@media screen and (max-width: 989px) {
+  .cross-sell {
+    --cs-add-min-w: 52px;
+  }
+}
+
 @media screen and (max-width: 749px) {
   .cross-sell {
-    --cs-card-w:    min(86vw, 340px);
-    --cs-media-w:   84px;
-    --cs-control-h: 48px;
-    --cs-pad-card:  12px;
+    --cs-card-w:    clamp(232px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px);
+    --cs-media-w:   76px;
+    --cs-control-h: 40px;
+    --cs-gap-media: 10px;
   }
 }
 
@@ -248,8 +279,9 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
 
 ## 11 · Open questions for the client
 
-1. Is the widget **column-width** (~600px, inside the product info column) or **full content width**? Everything scales from that one answer.
-2. What is the **enabled** state of the `ADD` button? (Assumption: solid black fill, white label.)
-3. Which **brand fonts** are licensed for web? The mono is doing a lot of work here — a generic fallback loses most of the character.
-4. Product images appear on a transparent/matching background. Is the full cross-sell catalogue shot that way, or do we need a neutral tile fallback for inconsistent imagery?
-5. Should the `SIZE` label be literal, or the product's real option name (Size / Colour / Length)? Building it dynamic is safer; the comp only shows one case.
+Question 1 from the original read (column-width vs. full content width) is answered — it's column-width, fixed by the theme's own product-information grid, not a setting any store chooses. See §2 for how it was measured.
+
+1. What is the **enabled** state of the `ADD` button? (Assumption: solid black fill, white label.)
+2. Which **brand fonts** are licensed for web? The mono is doing a lot of work here — a generic fallback loses most of the character.
+3. Product images appear on a transparent/matching background. Is the full cross-sell catalogue shot that way, or do we need a neutral tile fallback for inconsistent imagery?
+4. Should the `SIZE` label be literal, or the product's real option name (Size / Colour / Length)? Building it dynamic is safer; the comp only shows one case.

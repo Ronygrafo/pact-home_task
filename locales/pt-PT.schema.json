@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Apresentação em camadas",
     "cart_drawer": "Painel deslizante do carrinho",
-    "disclosures": "Divulgações"
+    "disclosures": "Divulgações",
+    "cross_sell": "Venda cruzada"
   },
   "settings": {
     "alignment": "Alinhamento",
@@ -583,7 +584,9 @@
     "input_style": "Estilo do campo",
     "selected_button_style": "Estilo do botão selecionado",
     "open_by_default": "Aberto por predefinição",
-    "title_preset": "Predefinição do título"
+    "title_preset": "Predefinição do título",
+    "cards_per_view": "Cartões por visualização",
+    "show_price": "Apresentar preço"
   },
   "options": {
     "apple": "Maçã",
@@ -987,7 +990,8 @@
     "gift_card_products": "Produtos de cartão de oferta",
     "disclosures": "Divulgações",
     "disclosures_metafield_content": "Avisos de segurança e divulgações regulamentares obrigatórios para este produto.",
-    "page_text_color_contrast_info": "As secções com uma cor de fundo personalizada apenas utilizam esta cor do texto quando existe contraste de cor suficiente."
+    "page_text_color_contrast_info": "As secções com uma cor de fundo personalizada apenas utilizam esta cor do texto quando existe contraste de cor suficiente.",
+    "cross_sell_source": "Os produtos são obtidos a partir do metacampo \"Cross-sell products\" deste produto (custom.cross_sell_products). Este bloco não apresenta nada aqui até que sejam atribuídos produtos complementares."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Partilhe informações sobre a sua marca com os seus clientes. Descreva um produto, faça anúncios ou dê as boas-vindas aos clientes na sua loja.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Mais vendidos",
     "featured_collection": "Coleção em destaque",
     "new_arrivals": "Novidades",
-    "disclosures": "Divulgações"
+    "disclosures": "Divulgações",
+    "pairs_with": "Combina com"
   },
   "info": {
     "video_alt_text": "Descreva o vídeo para utilizadores de tecnologia de apoio",

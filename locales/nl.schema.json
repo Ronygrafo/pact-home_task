@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Gelaagde diavoorstelling",
     "cart_drawer": "Winkelwagenoptie",
-    "disclosures": "Toelichtingen"
+    "disclosures": "Toelichtingen",
+    "cross_sell": "Cross-selling"
   },
   "settings": {
     "autoplay": "Automatisch afspelen",
@@ -583,7 +584,9 @@
     "input_style": "Invoerstijl",
     "selected_button_style": "Stijl van geselecteerde knop",
     "open_by_default": "Standaard geopend",
-    "title_preset": "Titelvoorinstelling"
+    "title_preset": "Titelvoorinstelling",
+    "cards_per_view": "Kaarten per weergave",
+    "show_price": "Prijs weergeven"
   },
   "options": {
     "apple": "Apple",
@@ -987,7 +990,8 @@
     "gift_card_products": "Cadeaubonproducten",
     "disclosures": "Toelichtingen",
     "disclosures_metafield_content": "Verplichte veiligheidswaarschuwingen en wettelijke vermeldingen voor dit product.",
-    "page_text_color_contrast_info": "Secties met een aangepaste achtergrondkleur gebruiken deze tekstkleur alleen als er voldoende kleurcontrast is."
+    "page_text_color_contrast_info": "Secties met een aangepaste achtergrondkleur gebruiken deze tekstkleur alleen als er voldoende kleurcontrast is.",
+    "cross_sell_source": "Producten worden opgehaald uit het metaveld 'Cross-sell products' van dit product (custom.cross_sell_products). Dit blok toont hier niets totdat er aanvullende producten zijn toegewezen."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Deel informatie over je merk met je klanten. Beschrijf een product, doe aankondigingen of heet klanten welkom in je winkel.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Bestsellers",
     "featured_collection": "Uitgelichte collectie",
     "new_arrivals": "Nieuw binnen",
-    "disclosures": "Toelichtingen"
+    "disclosures": "Toelichtingen",
+    "pairs_with": "Past goed bij"
   },
   "info": {
     "carousel_layout_on_mobile": "Op mobiel wordt altijd een carrousel gebruikt",

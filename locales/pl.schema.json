@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Warstwowy pokaz slajdów",
     "cart_drawer": "Szuflada koszyka",
-    "disclosures": "Informacje prawne"
+    "disclosures": "Informacje prawne",
+    "cross_sell": "Sprzedaż krzyżowa"
   },
   "settings": {
     "autoplay": "Autoodtwarzanie",
@@ -583,7 +584,9 @@
     "input_style": "Styl pola",
     "selected_button_style": "Styl wybranego przycisku",
     "open_by_default": "Domyślnie otwarte",
-    "title_preset": "Gotowe ustawienie tytułu"
+    "title_preset": "Gotowe ustawienie tytułu",
+    "cards_per_view": "Liczba kart w widoku",
+    "show_price": "Pokaż cenę"
   },
   "options": {
     "apple": "Apple",
@@ -987,7 +990,8 @@
     "gift_card_products": "Produkty karty prezentowej",
     "disclosures": "Informacje prawne",
     "disclosures_metafield_content": "Wymagane ostrzeżenia dotyczące bezpieczeństwa i informacje prawne dla tego produktu.",
-    "page_text_color_contrast_info": "Sekcje z niestandardowym kolorem tła będą używać tego koloru tekstu tylko wtedy, gdy kontrast kolorów będzie wystarczający."
+    "page_text_color_contrast_info": "Sekcje z niestandardowym kolorem tła będą używać tego koloru tekstu tylko wtedy, gdy kontrast kolorów będzie wystarczający.",
+    "cross_sell_source": "Produkty są pobierane z metapola „Cross-sell products” tego produktu (custom.cross_sell_products). Ten blok nie wyświetla tutaj niczego, dopóki nie zostaną przypisane produkty uzupełniające."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Podziel się informacjami o swojej marce z klientami. Opisz produkt, ogłaszaj nowości lub witaj klientów w swoim sklepie.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Bestsellery",
     "featured_collection": "Polecana kolekcja",
     "new_arrivals": "Nowości",
-    "disclosures": "Informacje prawne"
+    "disclosures": "Informacje prawne",
+    "pairs_with": "Pasuje do"
   },
   "info": {
     "video_alt_text": "Opisz wideo dla użytkowników technologii wspomagających",

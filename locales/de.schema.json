@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Überlagerte Slideshow",
     "cart_drawer": "Warenkorbeinschub",
-    "disclosures": "Pflichtangaben"
+    "disclosures": "Pflichtangaben",
+    "cross_sell": "Cross-Selling"
   },
   "settings": {
     "autoplay": "Autoplay",
@@ -583,7 +584,9 @@
     "input_style": "Eingabestil",
     "selected_button_style": "Stil für ausgewählte Schaltfläche",
     "open_by_default": "Standardmäßig geöffnet",
-    "title_preset": "Titelvoreinstellung"
+    "title_preset": "Titelvoreinstellung",
+    "cards_per_view": "Karten pro Ansicht",
+    "show_price": "Preis anzeigen"
   },
   "options": {
     "apple": "Apfel",
@@ -987,7 +990,8 @@
     "gift_card_products": "Geschenkgutscheinprodukte",
     "disclosures": "Pflichtangaben",
     "disclosures_metafield_content": "Erforderliche Sicherheitshinweise und gesetzliche Pflichtangaben für dieses Produkt.",
-    "page_text_color_contrast_info": "Abschnitte mit benutzerdefinierter Hintergrundfarbe verwenden diese Textfarbe nur bei ausreichendem Farbkontrast."
+    "page_text_color_contrast_info": "Abschnitte mit benutzerdefinierter Hintergrundfarbe verwenden diese Textfarbe nur bei ausreichendem Farbkontrast.",
+    "cross_sell_source": "Produkte werden aus dem Metafeld „Cross-sell products“ dieses Produkts abgerufen (custom.cross_sell_products). Der Block zeigt hier nichts an, bis ergänzende Produkte zugewiesen wurden."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Teile Informationen über deine Marke mit deinen Kunden. Beschreibe ein Produkt, mache Ankündigungen oder heiße Kunden in deinem Shop willkommen.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Bestseller",
     "featured_collection": "Vorgestellte Kollektion",
     "new_arrivals": "Neuheiten",
-    "disclosures": "Pflichtangaben"
+    "disclosures": "Pflichtangaben",
+    "pairs_with": "Passt zu"
   },
   "info": {
     "video_alt_text": "Beschreibe das Video für Benutzer von Hilfstechnologien",

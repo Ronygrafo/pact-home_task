@@ -1,0 +1,250 @@
+{%- doc -%}
+  Renders a single card inside the "Pairs With" cross-sell carousel: media, title, price,
+  a variant control (when needed) and an add-to-cart form.
+
+  Each companion product resolves to one of four `choice_mode` values, mirroring the cutoff
+  already used by the theme in snippets/quick-add.liquid:
+    - `none`    Single variant. No control, ADD enabled immediately.
+    - `option`  Exactly one option. A `<select>` built from that option's values.
+    - `variant` Two options and 12 variants or fewer. A `<select>` built from `product.variants`.
+    - `link`    More than 2 options, more than 12 variants, or the product uses selling plans.
+                No form at all — a "Choose" link to the product page instead.
+
+  @param {product} product - The companion product to render.
+  @param {string} block_id - The parent block's `block.id`, used to namespace the form and select ids.
+  @param {number} index - The 1-based position of this card in the carousel. Keeps form ids
+    unique when the same product is assigned to the widget more than once.
+  @param {string} section_id - The id of the section owning the block, passed to `<product-form-component>`.
+  @param {boolean} show_price - Whether to render the price row.
+
+  @example
+  {% render 'cross-sell-card', product: companion, block_id: block.id, index: forloop.index, section_id: section.id, show_price: true %}
+{%- enddoc -%}
+
+{% liquid
+  assign max_inline_variants = 12
+
+  assign form_id = 'CrossSell-' | append: block_id | append: '-' | append: index | append: '-' | append: product.id
+  assign select_id = form_id | append: '-Options'
+
+  assign variant = product.selected_or_first_available_variant
+
+  assign uses_selling_plans = false
+  if product.requires_selling_plan or product.selling_plan_groups.size > 0
+    assign uses_selling_plans = true
+  endif
+
+  # Mirrors the cutoff in snippets/quick-add.liquid:31-56: a single control fits inside the
+  # card without crowding the ADD button, a second control wouldn't.
+  if uses_selling_plans or product.options.size > 2 or product.variants_count > max_inline_variants
+    assign choice_mode = 'link'
+  elsif product.has_only_default_variant or product.variants_count == 1
+    assign choice_mode = 'none'
+  elsif product.options.size == 1
+    assign choice_mode = 'option'
+  else
+    assign choice_mode = 'variant'
+  endif
+
+  if choice_mode == 'none'
+    if variant.available
+      assign can_add_to_cart = true
+    else
+      assign can_add_to_cart = false
+    endif
+  else
+    assign can_add_to_cart = false
+  endif
+
+  unless product.available
+    assign can_add_to_cart = false
+  endunless
+
+  assign add_to_cart_text = 'actions.add' | t
+
+  if choice_mode == 'option'
+    assign control_label = product.options_with_values.first.name
+  elsif choice_mode == 'variant'
+    assign control_label = 'content.variant' | t
+  endif
+
+  assign card_image = variant.featured_media.preview_image | default: product.featured_image
+%}
+
+<product-card
+  class="cross-sell-card"
+  data-product-id="{{ product.id }}"
+  data-no-navigation
+>
+  <div class="cross-sell-card__media">
+    <a
+      href="{{ product.url }}"
+      class="cross-sell-card__media-link"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      {% if card_image != blank %}
+        {{
+          card_image
+          | image_url: width: 200
+          | image_tag:
+            loading: 'lazy',
+            width: 100,
+            height: 100,
+            widths: '84, 100, 168, 200',
+            sizes: '100px',
+            alt: product.title,
+            class: 'cross-sell-card__image'
+        }}
+      {% else %}
+        {{ 'product-apparel-1' | placeholder_svg_tag: 'cross-sell-card__image cross-sell-card__image--placeholder' }}
+      {% endif %}
+    </a>
+  </div>
+  <div class="cross-sell-card__body">
+    <a
+      href="{{ product.url }}"
+      ref="productCardLink"
+      class="cross-sell-card__title"
+    >
+      {{- product.title | escape -}}
+    </a>
+    {% if show_price %}
+      <div class="cross-sell-card__price">
+        {% render 'price', product_resource: product, show_sale_price_first: true %}
+      </div>
+    {% endif %}
+    {% unless product.available %}
+      <p class="cross-sell-card__note">{{ 'products.product.sold_out' | t }}</p>
+    {% endunless %}
+
+    {% if choice_mode == 'link' %}
+      <a
+        class="cross-sell-card__add cross-sell-card__add--link"
+        href="{{ product.url }}"
+      >
+        {{- 'actions.choose' | t -}}
+      </a>
+    {% else %}
+      <product-form-component
+        class="cross-sell-card__form"
+        data-section-id="{{ section_id }}"
+        data-product-id="{{ product.id }}"
+        data-product-url="{{ product.url }}"
+        data-quantity-default="1"
+        on:submit="/handleSubmit"
+      >
+        <div
+          class="visually-hidden"
+          aria-live="assertive"
+          role="status"
+          aria-atomic="true"
+          ref="liveRegion"
+        ></div>
+        {%- form 'product', product, id: form_id, novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
+          {% if choice_mode == 'none' %}
+            <input
+              type="hidden"
+              name="id"
+              ref="variantId"
+              value="{{ variant.id }}"
+            >
+            <input
+              type="hidden"
+              name="quantity"
+              value="{% if variant.quantity_rule.min %}{{ variant.quantity_rule.min }}{% else %}1{% endif %}"
+            >
+          {% else %}
+            <input
+              type="hidden"
+              name="id"
+              ref="variantId"
+              value=""
+              disabled
+            >
+            <input
+              type="hidden"
+              name="quantity"
+              value="1"
+            >
+          {% endif %}
+          <input
+            type="hidden"
+            name="properties[_source]"
+            value="pdp-cross-sell"
+          >
+          <div class="cross-sell-card__controls">
+            {% if choice_mode == 'option' or choice_mode == 'variant' %}
+              <label
+                class="visually-hidden"
+                for="{{ select_id }}"
+              >
+                {{- control_label | escape -}}
+              </label>
+              <select
+                id="{{ select_id }}"
+                class="cross-sell-card__select"
+                data-cross-sell-option
+                data-chosen="false"
+                on:change="cross-sell-component/handleOptionChange"
+              >
+                <option
+                  value=""
+                  data-variant-id=""
+                  selected
+                >
+                  {{- control_label | escape -}}
+                </option>
+                {% if choice_mode == 'option' %}
+                  {% for option_value in product.options_with_values.first.values %}
+                    <option
+                      value="{{ option_value | escape }}"
+                      data-variant-id="{{ option_value.variant.id }}"
+                      data-available="{{ option_value.variant.available }}"
+                      data-quantity-min="{% if option_value.variant.quantity_rule.min %}{{ option_value.variant.quantity_rule.min }}{% else %}1{% endif %}"
+                      data-variant-media="{{ option_value.variant.featured_media.preview_image | image_url: width: 100 }}"
+                      {% unless option_value.variant.available %}
+                        disabled
+                      {% endunless %}
+                    >
+                      {%- if option_value.variant.available == false -%}
+                        {{ option_value | escape }} - {{ 'content.unavailable' | t }}
+                      {%- else -%}
+                        {{ option_value | escape }}
+                      {%- endif -%}
+                    </option>
+                  {% endfor %}
+                {% else %}
+                  {% for product_variant in product.variants %}
+                    <option
+                      value="{{ product_variant.title | escape }}"
+                      data-variant-id="{{ product_variant.id }}"
+                      data-available="{{ product_variant.available }}"
+                      data-quantity-min="{% if product_variant.quantity_rule.min %}{{ product_variant.quantity_rule.min }}{% else %}1{% endif %}"
+                      data-variant-media="{{ product_variant.featured_media.preview_image | image_url: width: 100 }}"
+                      {% unless product_variant.available %}
+                        disabled
+                      {% endunless %}
+                    >
+                      {%- if product_variant.available == false -%}
+                        {{ product_variant.title | escape }} - {{ 'content.unavailable' | t }}
+                      {%- else -%}
+                        {{ product_variant.title | escape }}
+                      {%- endif -%}
+                    </option>
+                  {% endfor %}
+                {% endif %}
+              </select>
+            {% endif %}
+            {% render 'add-to-cart-button',
+              class: 'cross-sell-card__add',
+              can_add_to_cart: can_add_to_cart,
+              add_to_cart_text: add_to_cart_text,
+              product: product
+            %}
+          </div>
+        {%- endform -%}
+      </product-form-component>
+    {% endif %}
+  </div>
+</product-card>

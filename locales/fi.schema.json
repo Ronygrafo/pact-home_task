@@ -168,7 +168,8 @@
     "product_sku": "SKU-koodi",
     "layered_slideshow": "Kerroksittainen diaesitys",
     "cart_drawer": "Veto-ostoskori",
-    "disclosures": "Ilmoitukset"
+    "disclosures": "Ilmoitukset",
+    "cross_sell": "Ristiinmyynti"
   },
   "settings": {
     "alignment": "Tasaus",
@@ -583,7 +584,9 @@
     "input_style": "Syöttötyyli",
     "selected_button_style": "Valitun painikkeen tyyli",
     "open_by_default": "Avoinna oletuksena",
-    "title_preset": "Otsikon esiasetus"
+    "title_preset": "Otsikon esiasetus",
+    "cards_per_view": "Kortteja näkymässä",
+    "show_price": "Näytä hinta"
   },
   "options": {
     "apple": "Omena",
@@ -987,7 +990,8 @@
     "gift_card_products": "Lahjakorttituotteet",
     "disclosures": "Ilmoitukset",
     "disclosures_metafield_content": "Tämän tuotteen pakolliset turvallisuusvaroitukset ja säädösten edellyttämät ilmoitukset.",
-    "page_text_color_contrast_info": "Osiot, joissa on mukautettu taustaväri, käyttävät tätä tekstin väriä vain, kun värikontrasti on riittävä."
+    "page_text_color_contrast_info": "Osiot, joissa on mukautettu taustaväri, käyttävät tätä tekstin väriä vain, kun värikontrasti on riittävä.",
+    "cross_sell_source": "Tuotteet haetaan tämän tuotteen metakentästä \"Cross-sell products\" (custom.cross_sell_products). Lohko ei näytä täällä mitään, ennen kuin täydentäviä tuotteita on määritetty."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Jaa tietoja brändistäsi asiakkaillesi. Kuvaile tuotetta, tee ilmoituksia tai toivota asiakkaat tervetulleiksi kauppaasi.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Myydyimmät",
     "featured_collection": "Esittelykokoelma",
     "new_arrivals": "Uutuudet",
-    "disclosures": "Ilmoitukset"
+    "disclosures": "Ilmoitukset",
+    "pairs_with": "Sopii yhteen"
   },
   "info": {
     "carousel_layout_on_mobile": "Mobiilissa käytetään aina karusellia.",

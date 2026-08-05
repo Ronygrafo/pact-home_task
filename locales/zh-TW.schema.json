@@ -168,7 +168,8 @@
     "product_sku": "存貨單位 (SKU)",
     "layered_slideshow": "分層輪播",
     "cart_drawer": "購物車",
-    "disclosures": "資訊揭露"
+    "disclosures": "資訊揭露",
+    "cross_sell": "交叉銷售"
   },
   "settings": {
     "alignment": "對齊",
@@ -583,7 +584,9 @@
     "input_style": "輸入欄位樣式",
     "selected_button_style": "選取的按鈕樣式",
     "open_by_default": "預設為開啟",
-    "title_preset": "標題預設設定"
+    "title_preset": "標題預設設定",
+    "cards_per_view": "每螢幕卡片數",
+    "show_price": "顯示價格"
   },
   "options": {
     "apple": "Apple",
@@ -987,7 +990,8 @@
     "gift_card_products": "禮品卡產品",
     "disclosures": "資訊揭露",
     "disclosures_metafield_content": "此商品必備的安全警告與法規資訊揭露。",
-    "page_text_color_contrast_info": "具備自訂背景顏色的區段，只有在色彩對比度足夠時才會使用此文字顏色。"
+    "page_text_color_contrast_info": "具備自訂背景顏色的區段，只有在色彩對比度足夠時才會使用此文字顏色。",
+    "cross_sell_source": "產品來自此產品的元欄位「Cross-sell products」(custom.cross_sell_products)。在指派配套商品之前，此區塊不會在此處顯示任何內容。"
   },
   "html_defaults": {
     "share_information_about_your": "<p>向顧客分享您的品牌故事。可用來敘述產品、發布公告，或歡迎顧客造訪您的商店。</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "熱銷商品",
     "featured_collection": "精選商品系列",
     "new_arrivals": "新品上市",
-    "disclosures": "資訊揭露"
+    "disclosures": "資訊揭露",
+    "pairs_with": "搭配推薦"
   },
   "info": {
     "carousel_layout_on_mobile": "在行動裝置上一律使用輪播",

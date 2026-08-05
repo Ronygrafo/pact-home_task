@@ -19,7 +19,7 @@ Replace a paid cross-sell app on the product page with a theme-native widget tha
 |---|---|---|
 | **R1** | Store team manually chooses which products appear, per product | Product metafield `custom.cross_sell_products` of type `list.product_reference`, edited on the Admin product page |
 | **R2** | Renders on the product page directly below the Add to Cart button | Public theme block dropped as the next sibling of `buy-buttons` inside `product-information` |
-| **R3** | Shoppers add to cart from inside the widget | Custom element posting to `Theme.routes.cart_add_url`, reusing the theme's own cart event pipeline |
+| **R3** | Shoppers add to cart from inside the widget | Each card renders the theme's own `<product-form-component>`, wrapped in `<product-card>` so its event listeners resolve to the right product (§3.5) |
 | **R4** | Matches the reference design | Built against the token sheet in [../design-tokens.md](../design-tokens.md) |
 
 ## 3. Architecture decisions
@@ -52,25 +52,34 @@ All data needed is already on the page when Liquid runs. Rendering server-side m
 
 `overflow-x: auto` + `scroll-snap-type: x mandatory`, roughly 40 lines of CSS, zero KB of library. Native momentum on touch, works without JS, keyboard-scrollable. JS only enhances: enabling/disabling the arrows at each end.
 
-### 3.5 Add to cart reuses the theme's cart pipeline
+*Rejected:* reusing `snippets/slideshow.liquid` / `<slideshow-component>`. It was seriously considered — it already solves scroll-snap and already disables its arrows at each end natively (`assets/slideshow.js:431-432`), so it isn't dismissed lightly. Its markup carries dots, autoplay and a thumbnail rail this widget doesn't want, and reaching the reference's monochrome, zero-radius look would mean overriding most of its CSS anyway. At that point a purpose-built ~40 lines is less code to maintain, not more.
 
-Follow the contract in `assets/product-form.js` rather than inventing a parallel one: POST to `Theme.routes.cart_add_url` with `fetchConfig` from `@theme/utilities`, then dispatch the cart events from `@shopify/events` so the drawer and the cart bubble refresh through the theme's existing machinery. One round trip, no page reload, no second source of truth for cart state.
+### 3.5 Add to cart reuses the theme's own form component
 
-Every add carries a line item property `_source: pdp-cross-sell`. The underscore hides it from the shopper but keeps it on the order forever, so the client can attribute revenue to the widget without any extra tooling — the question they will ask once the app that reported those numbers is gone.
+Each card renders the theme's own `<product-form-component>`, copying the pattern already used in `snippets/quick-add.liquid:104-126` — the same hidden `id`/`quantity` inputs inside a `{% form 'product' %}`, the same `add-to-cart-button` render. That single choice pulls in the whole cart pipeline for free: the optimistic `CartLinesUpdateEvent`, 422 error handling, the live region, the `data-added` state, fly-to-cart, and the cart drawer's auto-open, all from `assets/product-form.js` — none of it hand-rolled.
+
+Every add carries a line item property `_source: pdp-cross-sell`, as a plain `<input type="hidden">` inside the form. It reaches the server because it rides along in `new FormData(form)` (`assets/product-form.js:420`) — no JS sets it explicitly. The underscore hides it from the shopper but keeps it on the order forever, so the client can attribute revenue to the widget without any extra tooling — the question they will ask once the app that reported those numbers is gone.
+
+Each card's root is wrapped in `<product-card data-no-navigation>`. This isn't decorative: `assets/product-form.js:236` has every `<product-form-component>` subscribe to the `productSelect` event on `this.closest('.shopify-section, dialog, product-card')`, and `#getVariantPicker()` (`:1096-1107`) falls back to the single `variant-picker` inside that same container without checking which product it belongs to. Without a `product-card` boundary around each card, changing the main product's size and clicking a cross-sell card's ADD inside that same window could resolve the *main* product's variant picker instead of the card's own — see §9 Risks for the failure path this closes off. `<product-card>` requires a real `<a>` ref (`assets/product-card.js:108`, throws otherwise at `:195-196`); `data-no-navigation` (`:559`) is what stops the card from also acting as a click-to-navigate link on its empty space.
+
+*Rejected:* a bespoke `fetch` to `Theme.routes.cart_add_url` from `assets/cross-sell.js` — the original approach in this plan, before the theme's event wiring was read closely. It would mean reimplementing error handling, the live region and the drawer refresh that `product-form-component` already provides, and it doesn't even sidestep the event-bubbling risk above: a hand-rolled listener on the same `.shopify-section` would hit the identical cross-talk problem, just without the theme's own guard rails.
 
 ## 4. Files
 
-All new. The only edits to existing files are additive translation keys.
+All new, with one exception. The only edit to an existing *source* file is additive keys in `locales/en.default.schema.json`.
 
 | Path | Purpose |
 |---|---|
 | `blocks/cross-sell.liquid` | Public theme block: schema, heading, arrows, carousel container, scoped `{% stylesheet %}` |
-| `snippets/cross-sell-card.liquid` | One product card: media, title, price, option selector, ADD button |
-| `assets/cross-sell.js` | `<cross-sell-component>` — arrow state, add-to-cart, live region |
-| `locales/en.default.json` | Storefront strings (reuse existing keys where they already exist) |
-| `locales/en.default.schema.json` | Theme editor labels under `names` / `settings` / `content` |
+| `snippets/cross-sell-card.liquid` | One product card: media, title, price, variant handling, `<product-form-component>` |
+| `assets/cross-sell.js` | `<cross-sell-component>` — arrow state, variant-select ↔ hidden-input ↔ ADD sync, no fetch |
+| `locales/en.default.schema.json` | Theme editor labels under `names` / `settings` / `content` / `text_defaults` |
 
-Both locale files carry an "auto-generated" banner and are JSONC, not strict JSON. Add keys, never restructure.
+`locales/en.default.json` — **no changes.** Every storefront string the widget needs (`actions.add`, `actions.choose`, `products.product.sold_out`, `content.unavailable`, `content.variant`, `accessibility.slideshow_previous`, `accessibility.slideshow_next`) already exists in the theme.
+
+`templates/product.json` also changes, but it's merchant configuration — the block dragged into position — not theme code. That's why the write-up's claim is precisely **"zero Horizon source files modified,"** not "zero files touched": the merchant's own product-page layout is expected to change; the theme's source isn't.
+
+`locales/en.default.schema.json` carries an "auto-generated" banner and is JSONC, not strict JSON. Add keys, never restructure.
 
 ## 5. Merchant setup
 
@@ -87,7 +96,7 @@ Steps 1 and 3 go in the README with screenshots, and are the moment to demo in t
 | Setting | Type | Default | Notes |
 |---|---|---|---|
 | `heading` | text | `Pairs with` | Merchant-editable; never hardcode "PAIRS WITH" |
-| `products_per_view` | range | 1.5 | Controls card width via a CSS custom property |
+| `products_per_view` | range (1–2, step 0.25) | 1.25 | Controls card width via a CSS custom property |
 | `show_price` | checkbox | true | |
 | `max_products` | range 2–8 | 8 | |
 
@@ -97,13 +106,15 @@ No setting may be able to break the layout. Anything that could is a CSS custom 
 
 | Phase | Output | Done when |
 |---|---|---|
-| **0 · Store prep** | Metafield definition, demo catalog (1 hero + 6 companions, one single-variant, one sold-out variant, one no-image, one very long title) | A product page has real assignments to render |
-| **1 · Structure** | Block + card snippet, server-rendered, unstyled | Cards appear below Add to Cart with correct data |
-| **2 · Design** | Token sheet applied, all resting states | Side-by-side with the reference is convincing |
-| **3 · Carousel** | Scroll-snap, arrows, disabled ends, peek | Works on touch, trackpad, keyboard |
-| **4 · Cart** | `<cross-sell-component>`, button state machine, `_source` property | Add updates the drawer with no reload; errors surface inline |
-| **5 · Hardening** | Responsive, a11y pass, edge cases, `shopify theme check` | QA matrix green end to end |
-| **6 · Deliverables** | README write-up, live demo link, Loom | Links verified from an incognito window |
+| **0 · Docs aligned** | This plan, the feature doc and the design tokens reflect the closed architecture decisions | A reviewer reading the three docs finds no contradiction with the code that follows |
+| **1 · Store prep** | Metafield definition, demo catalog (1 hero + 6 companions: one single-variant, one sold-out variant, one no-image, one very long title) | A product page has real assignments to render |
+| **2 · Block structure** | `blocks/cross-sell.liquid` schema, heading, arrows shell, carousel container; locale keys added | Cards appear below Add to Cart with correct data, unstyled |
+| **3 · Card snippet** | `snippets/cross-sell-card.liquid` — media, title, price, variant handling, `<product-form-component>` | Every variant mode renders correctly, including the `link` fallback |
+| **4 · `cross-sell.js`** | `<cross-sell-component>` — arrow disabled-state, select ↔ hidden-input ↔ ADD sync | Changing the select enables ADD; no fetch code present |
+| **5 · CSS** | Token sheet applied from `../design-tokens.md`, all resting and interaction states, responsive breakpoints | Side-by-side with the reference is convincing at 375 / 768 / 990 / 1440px |
+| **6 · Hardening** | Edge cases (§8), a11y pass, bfcache/`pageshow` restoration | QA matrix green end to end |
+| **7 · `shopify theme check`** | Clean run, no warnings introduced | Lint passes on the full diff |
+| **8 · Position in `templates/product.json`** | Block dragged to the sibling slot after `buy-buttons` | Live on the PDP, confirmed against an incognito preview |
 
 ## 8. Edge cases (must all be handled before the Loom)
 
@@ -119,18 +130,32 @@ No setting may be able to break the layout. Anything that could is a CSS custom 
 - Selector shows the product's **real option name**, not a hardcoded "SIZE".
 - Compare-at price → strikethrough.
 - The 2px active border must not shift layout (inset box-shadow or transparent resting border).
+- Companion with more than 2 options or more than 12 variants → degrades to a "Choose" link instead of a broken multi-select layout (see *Variant handling* in the feature doc).
+- The metafield can contain the current product itself → filtered out with `reject` before rendering.
+- The metafield can contain the same product twice → each card's `form_id` includes the loop index, so the two forms never collide.
+- Back/forward-cache restoration → the `<select>` restores its value from bfcache on `pageshow`, but the hidden `id` input and the ADD button's disabled state don't restore with it — they must be re-derived from the restored select value on that event, not assumed correct.
+- With JavaScript disabled, no multivariant card can add to cart at all: the `<select>` has no `name` attribute until JS assigns one, and the hidden `id` input is born `disabled` — deliberately, since an un-derived variant id must never be submittable.
 
-## 9. Out of scope
+## 9. Risks
+
+Found by reading the theme before writing any code, not by testing after the fact:
+
+- **Cross-form contamination.** `assets/product-form.js:236` and `:1096-1107` mean any `<product-form-component>` sharing a `.shopify-section` can pick up another product's `productSelect` event, or fall back to another product's `variant-picker` it never meant to touch. Mitigated by wrapping every card in `<product-card>` (§3.5) — without it, a shopper who changes the main product's size and adds from a cross-sell card in that same window could add the wrong variant, and lose `_source` in the process.
+- **The column is `sticky_details_desktop: true`** (`templates/product.json`), so the product-info column stays pinned while media scrolls. A tall widget pushes real content off the bottom of that pinned column — the whole reason the card is horizontal (~180px tall) rather than the theme's usual vertical product card.
+- **The mobile sticky Add to Cart bar competes for the same space.** The widget must not create its own stacking context that could conflict with it, and needs `scroll-margin-block-end` so a focus jump or deep link doesn't land the widget underneath that bar.
+- **`min-width: 0` is mandatory, not a nice-to-have** — see `../design-tokens.md` §6. Skip it anywhere between the block root and the scroll-snap track and the `overflow-x` scroller forces the whole PDP grid wider than its own column.
+- **A known upstream quirk, used as an argument rather than just noted.** `assets/product-form.js:428-436` appends to `formData` for `sections` *inside* the `cartItemsComponents.forEach` loop rather than after it — harmless today with the theme's single cart-items-component, but exactly the kind of subtlety that argues against writing a second, parallel cart request in `assets/cross-sell.js`. Reusing `product-form-component` means this quirk — and any future fix to it — is inherited automatically instead of needing to be tracked and re-applied in a hand-rolled path.
+
+## 10. Out of scope
 
 Deliberately not built, and stated as such in the write-up: bundle pricing or discount logic, "frequently bought together" automation, an embedded admin app, personalization or A/B testing, cross-sell on any template other than the product page. Building past the brief reads as poor prioritisation, not enthusiasm.
 
-## 10. Open questions
+## 11. Open questions
 
 Carried from the design analysis; answers get logged in the write-up as stated assumptions.
 
-1. Is the widget column-width (~600px) or full content width? Every dimension scales from this.
-2. What is the **enabled** state of the ADD button? Assumption: solid black fill, white label.
-3. Which brand fonts are licensed for web? The monospace carries most of the character.
-4. Is the whole companion catalog shot on transparent/matching backgrounds, or is a neutral tile fallback needed?
-5. After adding, should the cart drawer open or should the shopper stay on the PDP with a subtle confirmation? Recommendation: stay — opening the drawer interrupts the primary purchase.
-6. Should attribution feed GA4 / a CDP in addition to the line item property?
+1. What is the **enabled** state of the ADD button? Assumption: solid black fill, white label.
+2. Which brand fonts are licensed for web? The monospace carries most of the character.
+3. Is the whole companion catalog shot on transparent/matching backgrounds, or is a neutral tile fallback needed?
+4. After adding, should the cart drawer open or should the shopper stay on the PDP with a subtle confirmation? Recommendation: stay — opening the drawer interrupts the primary purchase.
+5. Should attribution feed GA4 / a CDP in addition to the line item property?

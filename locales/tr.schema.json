@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Katmanlı slayt gösterisi",
     "cart_drawer": "Sepet çekmecesi",
-    "disclosures": "Bildirimler"
+    "disclosures": "Bildirimler",
+    "cross_sell": "Çapraz satış"
   },
   "settings": {
     "autoplay": "Otomatik oynatma",
@@ -583,7 +584,9 @@
     "input_style": "Giriş stili",
     "selected_button_style": "Seçili düğme stili",
     "open_by_default": "Varsayılan olarak açık",
-    "title_preset": "Başlık ön ayarı"
+    "title_preset": "Başlık ön ayarı",
+    "cards_per_view": "Görünüm başına kart sayısı",
+    "show_price": "Fiyatı göster"
   },
   "options": {
     "apple": "Apple",
@@ -987,7 +990,8 @@
     "gift_card_products": "Hediye kartı ürünleri",
     "disclosures": "Bildirimler",
     "disclosures_metafield_content": "Bu ürün için zorunlu güvenlik uyarıları ve yasal bildirimler.",
-    "page_text_color_contrast_info": "Özel arka plan rengine sahip bölümler, bu metin rengini yalnızca yeterli renk kontrastı olduğunda kullanır."
+    "page_text_color_contrast_info": "Özel arka plan rengine sahip bölümler, bu metin rengini yalnızca yeterli renk kontrastı olduğunda kullanır.",
+    "cross_sell_source": "Ürünler, bu ürünün \"Cross-sell products\" meta alanından (custom.cross_sell_products) alınır. Tamamlayıcı ürünler atanana kadar bu blok burada hiçbir şey göstermez."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Markanızla ilgili bilgileri müşterilerinizle paylaşın. Bir ürünü açıklayın, duyurular yapın veya mağazanıza gelen müşterileri karşılayın.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Çok satanlar",
     "featured_collection": "Öne çıkan koleksiyon",
     "new_arrivals": "Yeni gelenler",
-    "disclosures": "Bildirimler"
+    "disclosures": "Bildirimler",
+    "pairs_with": "Uyumlu ürünler"
   },
   "info": {
     "video_alt_text": "Yardımcı teknoloji kullanıcıları için videoyu açıklayın",

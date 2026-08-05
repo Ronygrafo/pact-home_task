@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Vrstvená prezentace",
     "cart_drawer": "Výsuvný košík",
-    "disclosures": "Prohlášení"
+    "disclosures": "Prohlášení",
+    "cross_sell": "Křížový prodej"
   },
   "settings": {
     "alignment": "Zarovnání",
@@ -583,7 +584,9 @@
     "input_style": "Styl pole",
     "selected_button_style": "Styl vybraného tlačítka",
     "open_by_default": "Otevřeno ve výchozím stavu",
-    "title_preset": "Předvolba nadpisu"
+    "title_preset": "Předvolba nadpisu",
+    "cards_per_view": "Karet na obrazovku",
+    "show_price": "Zobrazit cenu"
   },
   "options": {
     "apple": "Apple",
@@ -987,7 +990,8 @@
     "gift_card_products": "Produkty dárkové karty",
     "disclosures": "Prohlášení",
     "disclosures_metafield_content": "Povinná bezpečnostní varování a zákonná prohlášení pro tento produkt.",
-    "page_text_color_contrast_info": "Sekce s vlastní barvou pozadí použijí tuto barvu textu pouze v případě dostatečného barevného kontrastu."
+    "page_text_color_contrast_info": "Sekce s vlastní barvou pozadí použijí tuto barvu textu pouze v případě dostatečného barevného kontrastu.",
+    "cross_sell_source": "Produkty se načítají z metapole „Cross-sell products“ u tohoto produktu (custom.cross_sell_products). Dokud nejsou přiřazeny doplňkové produkty, blok zde nic nezobrazí."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Sdílejte informace o značce se zákazníky. Popište produkt, oznamte novinky nebo přivítejte zákazníky v obchodě.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Nejprodávanější",
     "featured_collection": "Propagovaná kolekce",
     "new_arrivals": "Novinky",
-    "disclosures": "Prohlášení"
+    "disclosures": "Prohlášení",
+    "pairs_with": "Hodí se k"
   },
   "info": {
     "video_alt_text": "Popište video pro uživatele asistivních technologií",

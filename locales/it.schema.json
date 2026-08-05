@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Presentazione a livelli",
     "cart_drawer": "Finestra del carrello",
-    "disclosures": "Informative"
+    "disclosures": "Informative",
+    "cross_sell": "Vendita incrociata"
   },
   "settings": {
     "alignment": "Allineamento",
@@ -583,7 +584,9 @@
     "input_style": "Stile campo",
     "selected_button_style": "Stile pulsante selezionato",
     "open_by_default": "Aperto per impostazione predefinita",
-    "title_preset": "Preimpostazione titolo"
+    "title_preset": "Preimpostazione titolo",
+    "cards_per_view": "Schede per vista",
+    "show_price": "Mostra prezzo"
   },
   "options": {
     "apple": "Mela",
@@ -987,7 +990,8 @@
     "gift_card_products": "Prodotti buono regalo",
     "disclosures": "Informative",
     "disclosures_metafield_content": "Avvertenze di sicurezza e informative normative obbligatorie per questo prodotto.",
-    "page_text_color_contrast_info": "Le sezioni con un colore di sfondo personalizzato useranno questo colore del testo solo se il contrasto cromatico è sufficiente."
+    "page_text_color_contrast_info": "Le sezioni con un colore di sfondo personalizzato useranno questo colore del testo solo se il contrasto cromatico è sufficiente.",
+    "cross_sell_source": "I prodotti vengono recuperati dal metacampo \"Cross-sell products\" di questo prodotto (custom.cross_sell_products). Questo blocco non mostra nulla qui finché non vengono assegnati prodotti complementari."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Condividi informazioni sul tuo brand con i clienti. Descrivi un prodotto, fai annunci o dai il benvenuto ai clienti nel tuo negozio.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Bestseller",
     "featured_collection": "Collezione in evidenza",
     "new_arrivals": "Nuovi arrivi",
-    "disclosures": "Informative"
+    "disclosures": "Informative",
+    "pairs_with": "Si abbina a"
   },
   "info": {
     "carousel_layout_on_mobile": "Sui dispositivi mobili viene sempre utilizzato il carosello.",

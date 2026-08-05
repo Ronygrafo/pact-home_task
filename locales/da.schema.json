@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Diasshow i lag",
     "cart_drawer": "Indkøbskurvskuffe",
-    "disclosures": "Oplysninger"
+    "disclosures": "Oplysninger",
+    "cross_sell": "Krydssalg"
   },
   "settings": {
     "alignment": "Justering",
@@ -583,7 +584,9 @@
     "input_style": "Inputstil",
     "selected_button_style": "Stil for valgt knap",
     "open_by_default": "Åben som standard",
-    "title_preset": "Forudindstilling for titel"
+    "title_preset": "Forudindstilling for titel",
+    "cards_per_view": "Kort pr. visning",
+    "show_price": "Vis pris"
   },
   "options": {
     "apple": "Apple",
@@ -987,7 +990,8 @@
     "gift_card_products": "Gavekortprodukter",
     "disclosures": "Oplysninger",
     "disclosures_metafield_content": "Obligatoriske sikkerhedsadvarsler og lovpligtige oplysninger for dette produkt.",
-    "page_text_color_contrast_info": "Afsnit med en tilpasset baggrundsfarve bruger kun denne tekstfarve, når der er tilstrækkelig farvekontrast."
+    "page_text_color_contrast_info": "Afsnit med en tilpasset baggrundsfarve bruger kun denne tekstfarve, når der er tilstrækkelig farvekontrast.",
+    "cross_sell_source": "Produkter hentes fra metafeltet \"Cross-sell products\" på dette produkt (custom.cross_sell_products). Blokken viser ikke noget her, før der er tildelt supplerende produkter."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Del oplysninger om dit brand med dine kunder. Beskriv et produkt, kom med meddelelser, eller byd kunder velkommen i din butik.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Bestsellere",
     "featured_collection": "Udvalgt kollektion",
     "new_arrivals": "Nye varer",
-    "disclosures": "Oplysninger"
+    "disclosures": "Oplysninger",
+    "pairs_with": "Passer til"
   },
   "info": {
     "carousel_layout_on_mobile": "Karrusellen bruges altid på mobil",

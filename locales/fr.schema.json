@@ -168,7 +168,8 @@
     "product_sku": "SKU",
     "layered_slideshow": "Diaporama superposé",
     "cart_drawer": "Panier coulissant",
-    "disclosures": "Divulgations"
+    "disclosures": "Divulgations",
+    "cross_sell": "Vente croisée"
   },
   "settings": {
     "autoplay": "Lecture automatique",
@@ -583,7 +584,9 @@
     "input_style": "Style de champ",
     "selected_button_style": "Style du bouton sélectionné",
     "open_by_default": "Ouvert par défaut",
-    "title_preset": "Préréglage du titre"
+    "title_preset": "Préréglage du titre",
+    "cards_per_view": "Cartes par vue",
+    "show_price": "Afficher le prix"
   },
   "options": {
     "apple": "Pomme",
@@ -987,7 +990,8 @@
     "gift_card_products": "Produits cartes-cadeaux",
     "disclosures": "Divulgations",
     "disclosures_metafield_content": "Avertissements de sécurité obligatoires et informations réglementaires pour ce produit.",
-    "page_text_color_contrast_info": "Les sections avec une couleur d’arrière-plan personnalisée utiliseront cette couleur de texte uniquement si le contraste des couleurs est suffisant."
+    "page_text_color_contrast_info": "Les sections avec une couleur d’arrière-plan personnalisée utiliseront cette couleur de texte uniquement si le contraste des couleurs est suffisant.",
+    "cross_sell_source": "Les produits proviennent du métachamp « Cross-sell products » de ce produit (custom.cross_sell_products). Ce bloc n’affiche rien ici tant qu’aucun produit complémentaire n’est associé."
   },
   "html_defaults": {
     "share_information_about_your": "<p>Partagez des informations sur votre marque avec vos clients. Décrivez un produit, faites des annonces ou accueillez les clients dans votre boutique.</p>",
@@ -1082,7 +1086,8 @@
     "bestsellers": "Meilleures ventes",
     "featured_collection": "Collection en vedette",
     "new_arrivals": "Nouveautés",
-    "disclosures": "Divulgations"
+    "disclosures": "Divulgations",
+    "pairs_with": "Se marie avec"
   },
   "info": {
     "carousel_layout_on_mobile": "Le carrousel est toujours utilisé sur mobile",
