@@ -5,16 +5,18 @@
 **Deadline:** 3 business days from receipt
 **Goal:** Replace a paid cross-sell app with a custom, theme-native section that is faster, consistent, and demo-ready.
 
+> **Status — Day 0 complete.** Development store `rr-pact-home-task.myshopify.com` is live on Horizon 4.1.3, the repo is published at [Ronygrafo/pact-home_task](https://github.com/Ronygrafo/pact-home_task) with the untouched base theme as its baseline commit, and the questions are with Pact. Next up is §2.1 — the metafield definition — then the block itself. Architecture decisions and their rationale live in [cross-sell-widget.md](cross-sell-widget.md).
+
 ---
 
-## 0 · Before writing any code (Day 0 — same day)
+## 0 · Before writing any code (Day 0 — same day) ✅
 
-- [ ] Re-read the brief and mark every ambiguity.
-- [ ] **Send the clarifying questions** — the brief explicitly says *"if anything's unclear, just ask before you start."* Not asking is a silent negative signal. (Question list in `02-strategic-recommendations.md`.)
-- [ ] Create the Shopify Partner **development store**.
-- [ ] Install a clean base theme (Dawn or Horizon) and confirm which one you'll claim compatibility with.
-- [ ] Seed realistic demo data: 1 hero product + 4–6 cross-sell products (socks, accessories) with variants, images, and at least one sold-out variant.
-- [ ] Create the **GitHub repo** (public or shared-access) and push the untouched base theme as the first commit — the diff becomes your portfolio.
+- [x] Re-read the brief and mark every ambiguity.
+- [x] **Send the clarifying questions** — the brief explicitly says *"if anything's unclear, just ask before you start."* Not asking is a silent negative signal. (Question list in [../private/02-strategic-recommendations.md](../private/02-strategic-recommendations.md).)
+- [x] Create the Shopify Partner **development store**. → `rr-pact-home-task.myshopify.com`
+- [x] Install a clean base theme (Dawn or Horizon) and confirm which one you'll claim compatibility with. → **Horizon 4.1.3**, theme id `158575362200`.
+- [x] Seed realistic demo data: 1 hero product + 4–6 cross-sell products (socks, accessories) with variants, images, and at least one sold-out variant.
+- [x] Create the **GitHub repo** (public or shared-access) and push the untouched base theme as the first commit — the diff becomes your portfolio. → `836d585` is the baseline; `git diff 836d585..HEAD` shows only hand-written work.
 
 ---
 
@@ -38,13 +40,16 @@
 - [ ] Optional fallback layer (recommended): if the metafield is empty, fall back to Shopify's `product_recommendations` with `intent: complementary`, or a merchant-selected collection. **Never render an empty section.**
 
 ### 2.2 Placement (R2)
-- [ ] Implement as a **block inside `main-product.liquid`** (not a standalone section) so the merchant can drag it below the `buy_buttons` block in the theme editor and it sits inside the product info column.
+> Updated for Horizon: this theme has **no `main-product.liquid`**. The PDP is `sections/product-information.liquid`, which renders `{% content_for 'blocks' %}` and accepts `@theme`, so a public theme block can be positioned anywhere in the product column from the editor — with zero base files modified.
+
+- [ ] Implement as a **public theme block** (`blocks/cross-sell.liquid`), placeable as the next sibling of `buy-buttons` inside the product details group.
 - [ ] Ship a `templates/product.json` preset with the block already positioned below Add to Cart.
-- [ ] Document the exact theme files touched (keep it to the minimum; upgrade-safety matters).
+- [ ] Document the exact theme files touched — target is **none**, beyond additive locale keys.
 
 ### 2.3 Markup & rendering
 - [ ] `snippets/cross-sell-card.liquid` — one product card.
 - [ ] Server-rendered in Liquid. **No client-side product fetch** — the data is already on the page.
+- [ ] Read the assignment through `closest.product`, not the global `product`.
 - [ ] Card contents, per the design: product image · title · price · option selector · ADD button.
 - [ ] Variant selector driven by the product's **real option name**, not a hardcoded "Size".
 - [ ] Single-variant products: hide the selector, enable ADD immediately.
@@ -60,21 +65,22 @@
 - [ ] Hide scrollbar visually but keep it accessible.
 
 ### 2.5 Add to cart (R3)
-- [ ] `POST /cart/add.js` with the selected variant ID.
+> Updated for Horizon: follow the contract already in `assets/product-form.js` instead of hand-rolling a second cart path.
+
+- [ ] POST to `Theme.routes.cart_add_url` with the selected variant ID, using `fetchConfig` from `@theme/utilities`.
 - [ ] Button **state machine**: `disabled` (no option chosen) → `enabled` → `loading` → `added` → back to `enabled`.
 - [ ] Error handling: 422 / sold out → inline message, never a silent failure.
-- [ ] Refresh the theme's cart UI. Use the **Section Rendering API** (`sections=cart-drawer,cart-icon-bubble`) in the same request — one round trip, no full reload.
-- [ ] Dispatch the theme's own cart-update event so drawers/counters stay in sync.
-- [ ] Add a line item property (e.g. `_source: pdp-pairs-with`) so the client can attribute revenue to the widget.
+- [ ] Refresh the theme's cart UI by dispatching the cart events from `@shopify/events`, so the drawer and cart bubble re-render through the theme's own pipeline. One round trip, no full reload.
+- [ ] Add a line item property `_source: pdp-cross-sell` so the client can attribute revenue to the widget.
 
 ### 2.6 Design fidelity (R4)
-- [ ] Implement against the token sheet in `03-design-tokens.md`.
+- [ ] Implement against the token sheet in [../design-tokens.md](../design-tokens.md).
 - [ ] All interaction states built: default · hover · focus-visible · active · disabled · loading · success.
 - [ ] Mobile layout designed deliberately (no mobile comp was given — see recommendations).
 - [ ] Zero layout shift: reserve image aspect ratio, fixed card height.
 
 ### 2.7 Quality gates
-- [ ] **Performance:** no external JS/CSS; component JS under ~3 KB; `loading="lazy"` + `srcset`/`sizes` on images; CSS scoped to the section; JS deferred.
+- [ ] **Performance:** no external JS/CSS; component JS under ~3 KB; `loading="lazy"` + `srcset`/`sizes` on images; CSS scoped to the block via `{% stylesheet %}`; JS as a module.
 - [ ] **Accessibility (WCAG 2.1 AA):** labelled select, `aria-label` on arrows, `aria-live` region announcing "Added to cart", visible focus rings, keyboard-operable end to end.
 - [ ] **i18n:** every visible string through `| t` with keys in `locales/*.json`. No hardcoded copy.
 - [ ] **Merchant settings** in the schema: heading text, products-per-view, show/hide price, enable fallback.
@@ -86,14 +92,14 @@
 ## 3 · Deliverable A — Technical write-up
 
 - [ ] 1–2 pages, in the repo as `README.md` (or a linked doc).
-- [ ] Which Shopify features and **why**: metafields, OS 2.0 sections/blocks, Cart AJAX API, Section Rendering API, theme editor settings.
+- [ ] Which Shopify features and **why**: metafields, theme blocks, Cart AJAX API, the theme's cart event pipeline, theme editor settings.
 - [ ] Performance reasoning, ideally **quantified vs. the app being replaced** (KB, requests, LCP/INP).
 - [ ] Trade-offs and what you intentionally did *not* build.
 - [ ] What you'd do next with more time.
 
 ## 4 · Deliverable B — Working prototype
 
-- [ ] **GitHub repo**, clean commit history, readable messages.
+- [x] **GitHub repo**, clean commit history, readable messages. → [Ronygrafo/pact-home_task](https://github.com/Ronygrafo/pact-home_task)
 - [ ] `README.md` with: what it is, install steps, metafield setup, theme editor setup, settings reference.
 - [ ] **Live demo link** — development store preview URL (include the storefront password if required).
 - [ ] Backup link in case the store preview expires (static sandbox or hosted video walkthrough).
@@ -139,6 +145,6 @@ Test each of these before recording the Loom:
 
 | Day | Focus |
 |---|---|
-| **Day 1** | Questions sent · dev store + repo + demo data · metafield definition · Liquid markup and card structure · static design match |
+| **Day 1** | ~~Questions sent · dev store + repo~~ ✅ · demo data · metafield definition · Liquid markup and card structure · static design match |
 | **Day 2** | Carousel + JS add-to-cart + states + responsive + a11y pass · QA matrix · write-up |
 | **Day 3** | Loom recording · README polish · final QA from incognito · submit |
