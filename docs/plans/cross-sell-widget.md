@@ -32,6 +32,8 @@ The merchandiser opens a product in Admin, scrolls to the metafield, picks produ
 
 *Rejected:* a block setting with comma-separated handles (unusable at scale, silently breaks on rename), a collection per product (pollutes the catalog), a metaobject (needless indirection for a flat list).
 
+**Mandatory decision:** assignment is manual-only, per the brief. No algorithmic fallback (`product_recommendations`, a merchant-selected collection, or any other automated substitute). If the metafield list is empty, the block renders nothing.
+
 ### 3.2 Placement is a theme block, not a section edit
 
 Horizon has no `main-product.liquid`. The PDP is `sections/product-information.liquid`, which renders `{% content_for 'blocks' %}` and declares `@theme` in its schema — so any public theme block can be positioned anywhere in the product column from the theme editor.
@@ -87,7 +89,6 @@ Steps 1 and 3 go in the README with screenshots, and are the moment to demo in t
 | `heading` | text | `Pairs with` | Merchant-editable; never hardcode "PAIRS WITH" |
 | `products_per_view` | range | 1.5 | Controls card width via a CSS custom property |
 | `show_price` | checkbox | true | |
-| `enable_fallback` | checkbox | true | When the metafield is empty, fall back to complementary recommendations |
 | `max_products` | range 2–8 | 8 | |
 
 No setting may be able to break the layout. Anything that could is a CSS custom property with a clamp, not a free value.
@@ -106,7 +107,7 @@ No setting may be able to break the layout. Anything that could is a CSS custom 
 
 ## 8. Edge cases (must all be handled before the Loom)
 
-- No products assigned → section renders nothing at all, or the fallback. Never an empty container.
+- No products assigned → section renders nothing at all. Never an empty container.
 - One product assigned → no arrows, no broken carousel.
 - Eight products → arrows toggle correctly at both ends.
 - Single-variant companion → no selector, ADD enabled immediately.

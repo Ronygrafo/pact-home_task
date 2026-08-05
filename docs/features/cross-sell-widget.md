@@ -39,7 +39,7 @@ If a product has nothing assigned to it, the widget doesn't render at all. There
 
 ### What it deliberately doesn't do
 
-It doesn't bundle, discount, or automate. It shows what the store team chose, in the order they chose it, and gets out of the way.
+It doesn't bundle, discount, or automate. It shows what the store team chose, in the order they chose it, and gets out of the way — there is no algorithmic recommendation fallback; an empty assignment means nothing renders.
 
 ---
 
@@ -79,7 +79,7 @@ Product metafield `custom.cross_sell_products`, type `list.product_reference`, l
 {% assign companions = closest.product.metafields.custom.cross_sell_products.value %}
 ```
 
-Read it through `closest.product`, never the global `product` — the block can be placed inside contexts where they differ. When the list is empty and the `enable_fallback` setting is on, fall back to complementary recommendations; otherwise render nothing. The block must never output an empty container.
+Read it through `closest.product`, never the global `product` — the block can be placed inside contexts where they differ. Assignment is manual-only — **mandatory decision, no algorithmic fallback**: when the list is empty, the block renders nothing. The block must never output an empty container.
 
 ### Rendering contract
 
@@ -98,7 +98,6 @@ Cards are server-rendered in Liquid. There is no client-side product fetch, and 
 | `heading` | text | `Pairs with` |
 | `products_per_view` | range | 1.5 |
 | `show_price` | checkbox | true |
-| `enable_fallback` | checkbox | true |
 | `max_products` | range 2–8 | 8 |
 
 Settings that affect layout must resolve to CSS custom properties with clamped ranges, never to raw values that could break the grid.

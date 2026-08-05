@@ -33,11 +33,11 @@
 
 ## 2 · Build scope
 
-### 2.1 Data layer — how products get assigned (R1)
-- [ ] Create a product **metafield definition**: `custom.cross_sell_products`, type **Product list** (`list.product_reference`), limit ~6–8.
-- [ ] Merchant flow = open a product in Admin → scroll to the metafield → pick products → save. No code, no app.
-- [ ] Export the metafield definition steps into the repo README (screenshots or a numbered list).
-- [ ] Optional fallback layer (recommended): if the metafield is empty, fall back to Shopify's `product_recommendations` with `intent: complementary`, or a merchant-selected collection. **Never render an empty section.**
+### 2.1 Data layer — how products get assigned (R1) ✅
+- [x] Create a product **metafield definition**: `custom.cross_sell_products`, type **Product list** (`list.product_reference`), limit ~6–8.
+- [x] Merchant flow = open a product in Admin → scroll to the metafield → pick products → save. No code, no app.
+- [x] Export the metafield definition steps into the repo README (screenshots or a numbered list).
+- [x] Manual-only, per the brief — no fallback layer. If the metafield list is empty, the section renders nothing.
 
 ### 2.2 Placement (R2)
 > Updated for Horizon: this theme has **no `main-product.liquid`**. The PDP is `sections/product-information.liquid`, which renders `{% content_for 'blocks' %}` and accepts `@theme`, so a public theme block can be positioned anywhere in the product column from the editor — with zero base files modified.
@@ -83,7 +83,7 @@
 - [ ] **Performance:** no external JS/CSS; component JS under ~3 KB; `loading="lazy"` + `srcset`/`sizes` on images; CSS scoped to the block via `{% stylesheet %}`; JS as a module.
 - [ ] **Accessibility (WCAG 2.1 AA):** labelled select, `aria-label` on arrows, `aria-live` region announcing "Added to cart", visible focus rings, keyboard-operable end to end.
 - [ ] **i18n:** every visible string through `| t` with keys in `locales/*.json`. No hardcoded copy.
-- [ ] **Merchant settings** in the schema: heading text, products-per-view, show/hide price, enable fallback.
+- [ ] **Merchant settings** in the schema: heading text, products-per-view, show/hide price.
 - [ ] `shopify theme check` passes clean.
 - [ ] Cross-browser: Chrome, Safari, Firefox, iOS Safari.
 
@@ -125,7 +125,7 @@
 
 Test each of these before recording the Loom:
 
-- [ ] Product with **no** cross-sells assigned → section hidden (or fallback), no empty container.
+- [ ] Product with **no** cross-sells assigned → section renders nothing, no empty container.
 - [ ] Product with 1 cross-sell → no arrows, no broken carousel.
 - [ ] Product with 8 cross-sells → smooth scroll, arrows toggle correctly at both ends.
 - [ ] Cross-sell product with a **single variant** → no selector, ADD enabled.
