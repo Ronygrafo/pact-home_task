@@ -43,7 +43,7 @@
           "name": "t:names.button",
           "settings": {
             "label": "view product",
-            "link": "shopify://collections/all",
+            "link": "shopify://products/rr-trainer-low",
             "open_in_new_tab": false,
             "style_class": "button-custom",
             "custom_button_background": "rgba(0,0,0,0)",
@@ -78,7 +78,7 @@
         "horizontal_alignment": "space-between",
         "vertical_alignment": "flex-end",
         "align_baseline": true,
-        "horizontal_alignment_flex_direction_column": "center",
+        "horizontal_alignment_flex_direction_column": "flex-end",
         "vertical_alignment_flex_direction_column": "flex-end",
         "gap": 24,
         "section_width": "page-width",
