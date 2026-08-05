@@ -1,0 +1,30 @@
+# Files that live in the repo but must never be uploaded to the Shopify theme.
+# Patterns are globs relative to the theme root.
+
+# Project documentation (repo + team only)
+docs/*
+docs/**/*
+
+# AI agent configuration
+.claude/*
+.claude/**/*
+CLAUDE.md
+AGENTS.md
+
+# Repo-level files
+README.md
+LICENSE
+.gitignore
+.gitattributes
+.shopifyignore
+.git/*
+.git/**/*
+.github/*
+.github/**/*
+
+# Tooling / OS noise
+node_modules/*
+node_modules/**/*
+.DS_Store
+Thumbs.db
+*.log

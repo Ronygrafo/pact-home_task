@@ -1,0 +1,19 @@
+# Shopify CLI local metadata
+.shopify/
+
+# Dependencies
+node_modules/
+
+# Internal working notes (brief, checklist, strategy, design analysis).
+# Deliverable-facing documentation is authored separately for the repo.
+docs/
+
+# Personal/machine-specific agent settings (agent docs themselves are tracked)
+.claude/settings.local.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
