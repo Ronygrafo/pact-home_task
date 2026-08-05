@@ -1,5 +1,7 @@
 # Design Tokens & Styling Spec — "Pairs With" Widget
 
+![Reference design for the cross-sell widget](design-mockup.png)
+
 Derived from the reference screenshot. Everything below is a **read of the comp**, not a handoff from a design file — see *Method & confidence* before treating absolute pixel values as final.
 
 ---

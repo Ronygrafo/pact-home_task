@@ -10,6 +10,8 @@
 
 ### What it is
 
+![The cross-sell widget on the product page](../design-mockup.png)
+
 A carousel of companion products that sits on the product page, right under the Add to Cart button. Each card shows the product's image, name, price, a size selector and an ADD button, so a shopper can add a matching item to their cart without ever leaving the page they're on.
 
 ### Why it exists
@@ -147,4 +149,4 @@ shopify theme check
 shopify theme dev --store rr-pact-home-task.myshopify.com --theme 158575362200
 ```
 
-Then walk the QA matrix in `docs/private/` before recording anything, including a keyboard-only pass and 375 / 768 / 1440 / 1920 widths.
+Then walk the QA matrix in [../plans/01-delivery-checklist.md](../plans/01-delivery-checklist.md#7--definition-of-done--qa-matrix) before recording anything, including a keyboard-only pass and 375 / 768 / 1440 / 1920 widths.

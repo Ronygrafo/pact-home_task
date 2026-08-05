@@ -58,7 +58,7 @@ Carrusel titulado **"PAIRS WITH"**, situado debajo del botón de Add to Cart. Ca
 - **selector de talla**,
 - botón **ADD**.
 
-*(Especificación visual detallada extraída de la imagen → [03-design-tokens.md](03-design-tokens.md))*
+*(Especificación visual detallada extraída de la imagen → [design-tokens.md](../design-tokens.md))*
 
 ---
 
@@ -122,12 +122,14 @@ También dicen que la prueba **"está cerca del trabajo real que harías para lo
 
 ## Documentos de este proyecto
 
-| Doc | Contenido | Idioma | ¿Se entrega? |
+| Doc | Contenido | Idioma | ¿En el repo? |
 |---|---|---|---|
-| **00-brief-overview.md** | Este documento — el enunciado en claro | ES | No |
-| [01-delivery-checklist.md](01-delivery-checklist.md) | Checklist operativa de ejecución y QA | EN | No (uso interno) |
-| [02-strategic-recommendations.md](02-strategic-recommendations.md) | Lectura entre líneas y criterios de evaluación | EN | **No — interno** |
-| [03-design-tokens.md](03-design-tokens.md) | Especificación visual y tokens CSS | EN | Sí (puede ir al repo) |
+| **plans/00-brief-overview-[ES].md** | Este documento — el enunciado en claro | ES | Sí |
+| [plans/01-delivery-checklist.md](01-delivery-checklist.md) | Checklist operativa de ejecución y QA | EN | Sí |
+| [plans/cross-sell-widget.md](cross-sell-widget.md) | Plan de implementación del widget | EN | Sí |
+| [features/cross-sell-widget.md](../features/cross-sell-widget.md) | Documentación de la feature (overview + referencia técnica) | EN | Sí |
+| [design-tokens.md](../design-tokens.md) | Especificación visual y tokens CSS | EN | Sí |
+| **private/02-strategic-recommendations.md** | Lectura entre líneas y criterios de evaluación | EN | **No — único gitignored** |
 
 ---
 
