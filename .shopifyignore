@@ -1,17 +1,32 @@
 # Files that live in the repo but must never be uploaded to the Shopify theme.
 # Patterns are globs relative to the theme root.
 
-# Project documentation (repo + team only)
+# --- AI agent tooling: tracked in git, never on the store ---
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+AGENT.md
+.claude/*
+.claude/**/*
+.claude-plugin/*
+.claude-plugin/**/*
+.mcp.json
+.cursor/*
+.cursor/**/*
+.cursorrules
+.aider*
+.codex/*
+.codex/**/*
+# Safety net in case agent notes ever land inside a theme directory
+**/CLAUDE*.md
+**/AGENTS*.md
+**/*.claude.*
+
+# --- Project documentation (repo + team only) ---
 docs/*
 docs/**/*
 
-# AI agent configuration
-.claude/*
-.claude/**/*
-CLAUDE.md
-AGENTS.md
-
-# Repo-level files
+# --- Repo-level files ---
 README.md
 LICENSE
 .gitignore
@@ -22,9 +37,11 @@ LICENSE
 .github/*
 .github/**/*
 
-# Tooling / OS noise
+# --- Tooling / OS noise ---
 node_modules/*
 node_modules/**/*
+.shopify/*
+.shopify/**/*
 .DS_Store
 Thumbs.db
 *.log
