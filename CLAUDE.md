@@ -70,9 +70,10 @@ Custom elements only — no framework, no bundler. No block uses `{% javascript 
 
 ## Working rules for this repo
 
-- **Do not modify base theme files.** The widget ships as new files only (a public theme block, its snippets, its asset). If a change to a Horizon file becomes unavoidable, flag it first — "zero base files modified" is a deliberate upgrade-safety argument in the write-up.
+- **Do not modify base theme files.** The widget ships as new files only (a public theme block, its snippets, its asset). The one exception is additive translation keys in `locales/en.default.json` and `locales/en.default.schema.json` — both are JSONC with an auto-generated banner, so append keys and never restructure or reformat. If any other Horizon file must change, flag it first — "zero base files modified" is a deliberate upgrade-safety argument in the write-up.
 - Product assignment is a **product metafield** (`list.product_reference`), not a settings field with handles or IDs. The merchant works inside the Admin product page.
 - Server-render the cards in Liquid. No client-side product fetching, no third-party carousel library — the carousel is CSS scroll-snap.
 - The section must never render an empty container when a product has nothing assigned.
 - Commits: English, conventional-commit prefixes, no AI co-authorship trailers.
-- `docs/` is gitignored: it holds internal working notes (the brief transcript, delivery checklist, strategy notes, design-token analysis) that stay out of the submission. Read them for context — `docs/03-design-tokens.md` is the visual source of truth — but do not commit them.
+- `docs/` is tracked and is where the work is documented: `docs/plans/` holds implementation plans, `docs/features/` holds feature documentation (human overview first, agent reference second), and `docs/design-tokens.md` is the visual source of truth. Start from `docs/plans/cross-sell-widget.md` and `docs/features/cross-sell-widget.md`.
+- `docs/private/` is the only gitignored path — internal strategy notes that stay out of the submission. Read them for context, never commit them.

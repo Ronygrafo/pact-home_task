@@ -6,7 +6,7 @@ node_modules/
 
 # Internal working notes (brief, checklist, strategy, design analysis).
 # Deliverable-facing documentation is authored separately for the repo.
-docs/
+docs/private
 
 # Personal/machine-specific agent settings (agent docs themselves are tracked)
 .claude/settings.local.json
