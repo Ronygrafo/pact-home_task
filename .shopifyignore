@@ -37,6 +37,10 @@ LICENSE
 .github/*
 .github/**/*
 
+# --- Local mock assets for demo/testing (never uploaded to the theme) ---
+assets/mocks/*
+assets/mocks/**/*
+
 # --- Tooling / OS noise ---
 node_modules/*
 node_modules/**/*

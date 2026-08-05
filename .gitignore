@@ -4,6 +4,9 @@
 # Dependencies
 node_modules/
 
+# assets for mocking and testing
+assets/mocks
+
 # Internal working notes (brief, checklist, strategy, design analysis).
 # Deliverable-facing documentation is authored separately for the repo.
 docs/private
