@@ -16,7 +16,7 @@
           "type": "text",
           "name": "t:names.heading",
           "settings": {
-            "text": "<p>Browse our latest products</p>",
+            "text": "<p>Demo product</p>",
             "width": "fit-content",
             "max_width": "normal",
             "alignment": "left",
@@ -42,7 +42,7 @@
           "type": "button",
           "name": "t:names.button",
           "settings": {
-            "label": "Shop all",
+            "label": "view product",
             "link": "shopify://collections/all",
             "open_in_new_tab": false,
             "style_class": "button-custom",
@@ -65,6 +65,7 @@
       "name": "t:names.hero",
       "settings": {
         "media_type_1": "image",
+        "image_1": "shopify://shop_images/RR-trainer-hero.png",
         "media_type_2": "image",
         "stack_media_on_mobile": false,
         "custom_mobile_media": false,
@@ -286,7 +287,7 @@
         "icons_style": "arrow",
         "icons_shape": "none",
         "section_width": "page-width",
-        "horizontal_alignment": "flex-start",
+        "horizontal_alignment": "flex-end",
         "gap": 28,
         "background_color": "{{ settings.color_palette.background }}",
         "padding-block-start": 48,
