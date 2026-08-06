@@ -104,9 +104,9 @@
 ## 4 · Deliverable B — Working prototype
 
 - [x] **GitHub repo**, clean commit history, readable messages. → [Ronygrafo/pact-home_task](https://github.com/Ronygrafo/pact-home_task)
-- [x] `README.md` with: what it is, install steps, metafield setup, theme editor setup, settings reference. → written; **three placeholders still to fill** (live preview URL, storefront password, backup link) and the two admin screenshots need retaking in an English admin.
-- [ ] **Live demo link** — development store preview URL (include the storefront password if required).
-- [ ] Backup link in case the store preview expires (static sandbox or hosted video walkthrough).
+- [x] `README.md` with: what it is, install steps, metafield setup, theme editor setup, settings reference. → written, audited and trimmed for a reviewer's read: demo first, install steps moved to the end, no placeholders left. Pending: the two admin screenshots need retaking in an English admin.
+- [x] **Live demo link** — [rr-trainer-low](https://rr-pact-home-task.myshopify.com/products/rr-trainer-low), storefront password `pact`. In the README and in the technical-approach answer.
+- [ ] Backup link in case the store preview expires — the Loom serves as this; add it under the README's **See it live** section once recorded (the placeholder row was removed, so nothing ships half-written if it isn't).
 - [ ] Verify both links from an incognito window before submitting.
 
 ## 5 · Deliverable C — Client-facing Loom
