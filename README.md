@@ -60,8 +60,9 @@ Everything hand-written for this task carries an `rr-` prefix, so the work is vi
 | `assets/rr-cross-sell.css` | Block-scoped styles |
 | `locales/*.schema.json` | 5 new theme-editor labels, across all 20 schema locale files |
 | `templates/product.json` | Merchant configuration — positions the block. Written by the theme editor, not by hand |
+| `config/settings_data.json` | Merchant configuration — the global colour palette the widget inherits from ([Design](#design)) |
 
-**No Horizon source file is modified.** The only edits to pre-existing files are additive schema-locale keys, plus `templates/product.json`, which is configuration rather than theme code. Commit `836d585` is the untouched base theme, so the diff is the deliverable:
+**No Horizon source file is modified.** What changed outside the new files is merchant configuration and additive schema-locale keys — the theme editor writing its own files, not theme code being edited. Commit `836d585` is the untouched base theme, so the diff is the deliverable:
 
 ```bash
 git diff 836d585..HEAD --stat
