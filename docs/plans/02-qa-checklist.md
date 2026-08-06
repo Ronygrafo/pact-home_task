@@ -76,8 +76,11 @@ A2 was run first — the only one of these four that could have forced a structu
 - [x] **C4** The image sits directly on the card's grey surface — no white tile behind it.
 - [x] **C5** Focus the select and measure the card's width in DevTools before and after — it must be identical. The 2px border is an inset `box-shadow` precisely for this.
 - [x] **C6** The two-line title (the Featherweight) doesn't knock cards out of alignment.
+- [x] **C7** Colour inheritance, after the widget's palette was moved onto the theme's own tokens ([../design-tokens.md §3](../design-tokens.md)). Checked in the widget — the 1px resting border on the `<select>` — and, because `color_palette.color2` was set to `#D0D0D0` to supply the specified value, at every other place in the theme that reads it: the header background band, the cart background, the PDP and footer dividers, and the variant-pill borders. No regression anywhere; the widget renders identically to the pre-inheritance build.
 
 C1 is the check R4 was waiting on. It passed — the widget now holds up against `../design-mockup.png` side by side, not just against the token sheet.
+
+C7 is the one check whose blast radius reaches outside the widget. `color2` feeds eight settings in `config/settings_data.json`, two of them background fills rather than strokes, so it was verified store-wide rather than on the PDP alone.
 
 ---
 
@@ -125,7 +128,7 @@ Originally blocked on demo catalogue data. All three now covered — F1 by seedi
 
 ## Closing note
 
-**Nothing failed, and every section was run.** A (all four, isolation test included), B1–B8, C, D1–D2/D4, all five responsive viewports, F1–F3 and G1–G3 passed in a browser. The architecture holds, the cart path works end to end, the design matches the reference, every branch of the variant decision tree has executed, and the widget degrades correctly with scripting off.
+**Nothing failed, and every section was run.** A (all four, isolation test included), B1–B8, C1–C7, D1–D2/D4, all five responsive viewports, F1–F3 and G1–G3 passed in a browser. The architecture holds, the cart path works end to end, the design matches the reference, every branch of the variant decision tree has executed, and the widget degrades correctly with scripting off.
 
 Two items stay unchecked. Neither is a defect — both are blocked by something the environment didn't provide:
 
