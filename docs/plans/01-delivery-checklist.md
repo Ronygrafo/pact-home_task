@@ -127,23 +127,7 @@
 
 ## 7 · Definition of Done — QA matrix
 
-Test each of these before recording the Loom. Checked rows were confirmed against real HTML served by `shopify theme dev` — product `rr-trainer-low` (7 companions assigned) and 6 products with none assigned. Everything else needs an actual browser session; none of it has been exercised yet.
-
-- [x] Product with **no** cross-sells assigned → section renders nothing, no empty container. Confirmed on 6 products.
-- [ ] Product with 1 cross-sell → no arrows, no broken carousel. **Blocked:** the demo catalog only has products with 0 or 7 companions assigned, none with exactly 1.
-- [ ] Product with 8 cross-sells → smooth scroll, arrows toggle correctly at both ends. 7 of 8 confirmed server-rendered with carousel controls present (`aria-controls`, initial `aria-disabled` state); the interactive scroll and arrow-toggle behaviour hasn't been exercised in a browser yet.
-- [x] Cross-sell product with a **single variant** → no selector, ADD enabled.
-- [x] Cross-sell product **fully sold out** → ADD disabled with clear reason.
-- [x] One variant sold out among several → that option disabled only.
-- [ ] Cross-sell companion using variant mode `link` (more than 2 options, or more than 12 variants) → renders a "Choose" link instead of a form, no ADD button. **Blocked:** no product in the catalog has more than 2 options yet — this branch of `snippets/cross-sell-card.liquid` has never run.
-- [ ] Product with no image → placeholder, layout intact.
-- [x] Very long product title → clamped, cards stay aligned. Title reaches the DOM intact (verified); the 2-line clamp itself is a static CSS rule, not yet eyeballed in a browser.
-- [ ] Adding the same product twice → quantity increments correctly.
-- [ ] Cart drawer/counter updates without a page reload.
-- [ ] The isolation test: change the main product's size, then click ADD on a companion card in the same instant — the companion, not the main product, must be added to the cart. Exercises the `<product-card>` boundary decision, see the JavaScript contract in [cross-sell-widget.md](cross-sell-widget.md).
-- [ ] Mobile 375px, tablet 768px, desktop 1440px, ultra-wide 1920px.
-- [ ] Keyboard-only run through the whole widget.
-- [ ] Lighthouse on the PDP: no regression vs. the base theme.
+- [ ] **QA matrix green.** Full checklist — what's already verified against server-rendered HTML and the full manual browser pass (isolation test, cart behaviour, visual, accessibility, responsive, catalog-blocked cases, cross-browser) — lives in [02-qa-checklist.md](02-qa-checklist.md), so this plan doesn't duplicate it. Test each item there before recording the Loom.
 
 ---
 
