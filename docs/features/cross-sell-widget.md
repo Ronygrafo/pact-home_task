@@ -1,6 +1,6 @@
 # Cross-sell widget — "Pairs With"
 
-> **Status: built, pending browser QA.** The block, card snippet and JS component are implemented and wired into the product template; `shopify theme check` runs clean (348 files, 0 offenses). What's still open is a full browser QA pass — cart drawer, the isolation race condition, keyboard, responsive, and two variant-mode edge cases the current catalog can't exercise — plus the side-by-side comparison against the reference mockup. See the table below and [../plans/01-delivery-checklist.md](../plans/01-delivery-checklist.md#7--definition-of-done--qa-matrix). Implementation plan: [../plans/cross-sell-widget.md](../plans/cross-sell-widget.md). Visual spec: [../design-tokens.md](../design-tokens.md).
+> **Status: built and QA'd.** The block, card snippet and JS component are implemented and wired into the product template; `shopify theme check` runs clean (348 files, 0 offenses). The manual browser QA pass ran on 2026-08-06 with **zero failures** across every section — cart drawer, the isolation race condition, keyboard, reduced motion, responsive, no-JS, cross-browser and Lighthouse. All four variant modes have executed, `link` included. Two known gaps remain, neither a defect and neither a code path in this widget: the screen-reader announcement (no AT available) and the cart-error path (inherited from the theme). Full matrix: [../plans/02-qa-checklist.md](../plans/02-qa-checklist.md). Implementation plan: [../plans/cross-sell-widget.md](../plans/cross-sell-widget.md). Visual spec: [../design-tokens.md](../design-tokens.md).
 
 ---
 
@@ -53,11 +53,11 @@ It doesn't bundle, discount, or automate. It shows what the store team chose, in
 |---|---|
 | Metafield definition | Done |
 | Block + card markup | Done |
-| Design tokens applied | Done — not yet compared side-by-side with the reference mockup |
-| Carousel behaviour | Done — implemented; interactive scroll and arrow-toggle not yet exercised in a browser |
-| Add to cart | Done — wired to the theme's own `<product-form-component>`; cart drawer refresh not yet watched happen in a browser |
+| Design tokens applied | Done — verified side-by-side against the reference mockup at 1440px |
+| Carousel behaviour | Done — scroll, snap, arrow-toggle and swipe all exercised in a browser |
+| Add to cart | Done — wired to the theme's own `<product-form-component>`; drawer refresh, bubble count and `_source` on the line item all confirmed |
 | Translations | Done — 5 new schema keys, translated across all 20 locale files |
-| QA matrix | Server-side checks done (see the plan's [QA matrix](../plans/01-delivery-checklist.md#7--definition-of-done--qa-matrix)); browser QA still open |
+| QA matrix | **Green** — every section run, zero failures. Three known gaps, all environment-blocked: see [02-qa-checklist.md](../plans/02-qa-checklist.md) |
 
 ### Files
 
