@@ -118,7 +118,8 @@ Originally blocked on demo catalogue data. All three now covered — F1 by seedi
 
 - [x] **G1** Chrome, Safari, Firefox, iOS Safari.
 - [x] **G2** JS disabled: the widget still renders, links navigate, and no card with a selector can add anything — the `<select>` has no `name` and the hidden id input is born `disabled`.
-- [x] **G3** Lighthouse on the PDP against the base theme: no regression.
+- [x] **G3** Lighthouse on the PDP against the base theme: no regression. **95 → 96 Performance, 96 → 97 Accessibility, 77 → 77 Best Practices** — same product page on the published store, block removed and re-added between runs. Read it as parity, not as an improvement: a one-point delta on a single run is variance.
+  - **Method matters here.** The first attempt at this measurement ran against `shopify theme dev` and reported 88 → 75, a 13-point "regression" that was entirely an artifact of the dev server — unminified assets and an open hot-reload websocket. Never benchmark against `theme dev`. The numbers above are from the published theme.
 
 ---
 

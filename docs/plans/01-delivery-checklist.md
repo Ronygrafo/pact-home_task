@@ -84,7 +84,7 @@
 > Held up against [../design-mockup.png](../design-mockup.png) side by side at 1440px on 2026-08-06 — passed. That was the open item behind R4, which is now checked.
 
 ### 2.7 Quality gates
-- [x] **Performance:** no external JS/CSS ✓ · CSS in its own scoped asset, `assets/rr-cross-sell.css`, loaded via `asset_url | stylesheet_tag` ✓ (see [cross-sell-widget.md](../features/cross-sell-widget.md) *Styling* for why this departs from Horizon's `{% stylesheet %}` convention) · JS shipped as an ES module, no framework ✓ · `loading="lazy"` + `srcset`/`sizes` on card images ✓ · **Lighthouse on the PDP shows no regression against the base theme** ✓. Remaining caveat, not a blocker: `assets/rr-cross-sell.js` measures **~8.4 KB** raw, over the ~3 KB target set in this plan (most of it is the inline rationale comments documented throughout the file), and hasn't been measured minified/gzipped.
+- [x] **Performance:** no external JS/CSS ✓ · CSS in its own scoped asset, `assets/rr-cross-sell.css`, loaded via `asset_url | stylesheet_tag` ✓ (see [cross-sell-widget.md](../features/cross-sell-widget.md) *Styling* for why this departs from Horizon's `{% stylesheet %}` convention) · JS shipped as an ES module, no framework ✓ · `loading="lazy"` + `srcset`/`sizes` on card images ✓ · **Lighthouse on the published PDP shows no regression against the same page without the block** ✓ — 95 → 96 Performance, 96 → 97 Accessibility, 77 → 77 Best Practices, i.e. parity within run variance (screenshots in `docs/images/`). Remaining caveat, not a blocker: `assets/rr-cross-sell.js` measures **~8.4 KB** raw, over the ~3 KB target set in this plan (most of it is the inline rationale comments documented throughout the file), and hasn't been measured minified/gzipped.
 - [x] **Accessibility (WCAG 2.1 AA):** labelled select, `aria-label` on arrows, `aria-live` region announcing "Added to cart", visible focus rings. The keyboard-only walkthrough passed — Tab reaches the arrows, the scroller, the select and ADD with visible focus rings, and an arrow at its end stays focusable (`aria-disabled`, not `disabled`). Open gap: the live region is code-verified (7/7 cards) but has never been heard through a real screen reader.
 - [x] **i18n:** every visible string through `| t` with keys in `locales/*.json`. No hardcoded copy — 5 new schema keys, translated across all 20 locale files (`en` + 19 others); no new storefront-facing keys needed.
 - [x] **Merchant settings** in the schema: heading text, products-per-view, show/hide price — plus `max_products`, not originally scoped.
@@ -97,7 +97,7 @@
 
 - [ ] 1–2 pages, in the repo as `README.md` (or a linked doc).
 - [ ] Which Shopify features and **why**: metafields, theme blocks, Cart AJAX API, the theme's cart event pipeline, theme editor settings.
-- [ ] Performance reasoning, ideally **quantified vs. the app being replaced** (KB, requests, LCP/INP).
+- [ ] Performance reasoning. Not quantified vs. the app being replaced — it isn't installed here, so there's no honest before-and-after. What's measured instead: the same published page with and without the block (95 → 96 Performance), plus the architectural argument (zero external requests, zero runtime fetch).
 - [ ] Trade-offs and what you intentionally did *not* build.
 - [ ] What you'd do next with more time.
 

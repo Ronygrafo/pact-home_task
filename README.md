@@ -6,6 +6,8 @@ The client's app was slowing the product page down and recommending inconsistent
 
 **Built on** Horizon 4.1.3 · **Zero base theme files modified** · **No third-party scripts, no runtime product fetch**
 
+![The Pairs With widget on the RR Trainer Low product page, directly below Add to Cart](docs/images/widget-on-product-page.png)
+
 ---
 
 ## The four requirements
@@ -166,13 +168,33 @@ Type families resolve from the theme's own `--font-heading--family` / `--font-bo
 
 ## Performance
 
-The honest framing: this wasn't benchmarked against the specific app being replaced, because that app isn't installed here. What can be stated is architectural, and it's the part that matters.
+The honest framing first: this wasn't benchmarked against the specific app being replaced, because that app isn't installed here. So there is no before-and-after against the incumbent. What there is: a measured comparison against the same page without the widget, and an architectural argument for why the difference is what it is.
+
+### Measured
+
+Same product page, same published store, block removed and re-added between runs.
+
+| | Without the widget | With the widget |
+|---|---|---|
+| **Performance** | 95 | **96** |
+| **Accessibility** | 96 | **97** |
+| **Best Practices** | 77 | **77** |
+
+|  |  |
+|---|---|
+| ![Lighthouse on the product page without the widget: Performance 95, Accessibility 96](docs/images/lighthouse-no-widget.png) | ![Lighthouse on the same page with the widget: Performance 96, Accessibility 97](docs/images/lighthouse-with-widget.png) |
+| *Without the widget* | *With the widget* |
+
+**The widget lands inside run-to-run variance of the clean theme — both score in the green.** I'm not claiming it makes the page faster; a one-point delta on a single run is noise. The claim is that adding seven server-rendered product cards, a stylesheet and a script costs nothing measurable, which is exactly what should happen and is not what the page was doing with an app in that slot.
+
+Best Practices sits at 77 on both runs — that's Horizon's baseline, unchanged by this widget.
+
+### Why it comes out that way
 
 - **No external requests.** No third-party script, no CDN dependency, no vendor endpoint.
 - **No runtime product fetch.** A typical cross-sell app asks the server what to recommend *after* the page loads, so the widget appears post-hydration and can shift layout. These cards are in the HTML of the first response.
 - **Two static assets**, both served from the theme: one CSS file, one ES module. No framework, no bundler.
 - **Images** carry explicit `width`/`height`, `srcset` at 1x/2x and `loading="lazy"` — reserved space, no layout shift.
-- **Lighthouse on the product page scores the same** with the widget as the clean base theme does without it.
 
 One number that isn't where I'd like it: `assets/rr-cross-sell.js` is ~8.4 KB raw, above the ~3 KB budget I set myself. Most of that is inline comments explaining the decisions above, and it hasn't been measured minified or gzipped.
 
@@ -183,6 +205,8 @@ One number that isn't where I'd like it: `assets/rr-cross-sell.js` is ~8.4 KB ra
 Keyboard-operable end to end: labelled selector, `aria-label` on the arrows, `aria-disabled` (not `disabled`) when an arrow is at an end so it stays focusable, visible focus rings throughout, and an `aria-live` region announcing each add. Motion is limited to colour and shadow transitions, wrapped in `prefers-reduced-motion`.
 
 Every visible string resolves through `| t`. The widget needed **no new storefront strings** — it reuses keys the theme already ships (`actions.add`, `actions.added`, `content.unavailable`, and others). The only additions are 5 theme-editor labels, translated across all 20 locale files.
+
+Lighthouse's accessibility audit scores the page 97 with the widget and 96 without it — adding this much interactive UI costs nothing there.
 
 One stated decision rather than an oversight: the disabled ADD label sits around 2:1 contrast, matching the reference. Disabled controls are exempt from WCAG 1.4.3, so it's defensible — but it was a choice.
 
