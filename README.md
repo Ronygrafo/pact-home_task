@@ -59,10 +59,8 @@ Everything hand-written for this task carries an `rr-` prefix, so the work is vi
 | `assets/rr-cross-sell.js` | The `<cross-sell-component>` custom element |
 | `assets/rr-cross-sell.css` | Block-scoped styles |
 | `locales/*.schema.json` | 5 new theme-editor labels, across all 20 schema locale files |
-| `templates/product.json` | Merchant configuration — positions the block. Written by the theme editor, not by hand |
-| `config/settings_data.json` | Merchant configuration — the global colour palette the widget inherits from ([Design](#design)) |
 
-**No Horizon source file is modified.** What changed outside the new files is merchant configuration and additive schema-locale keys — the theme editor writing its own files, not theme code being edited. Commit `836d585` is the untouched base theme, so the diff is the deliverable:
+**No Horizon source file is modified** — not a template, not a stylesheet, not a script. Everything else the diff shows is configuration and copy: the theme editor and the Admin writing their own JSON as this demo store was set up, the block was placed and the palette was tuned ([Design](#design)). Commit `836d585` is the untouched base theme, so the diff is the deliverable:
 
 ```bash
 git diff 836d585..HEAD --stat
@@ -118,7 +116,7 @@ Token values live in [docs/design-tokens.md](docs/design-tokens.md), the visual 
 
 **The widget ships almost no design values of its own.** Type families resolve from Horizon's `--font-heading--family` / `--font-body--family`; colour resolves from the theme's palette — `--color-foreground`, `--color-background`, `--color-input-border`, with the muted greys derived from the foreground at calibrated alphas. No extra font request, no second palette.
 
-So the reference wasn't matched by styling the widget. It was matched by setting Horizon's **global** type and colour settings on this store, and the widget followed. The same block dropped into the client's theme comes out in their brand without touching its CSS — which is the behaviour you want from something that has to sit under Add to Cart forever. Each inherited token keeps the design's original hex as a `var()` fallback, so a theme that doesn't expose those properties still renders as specified.
+So the reference wasn't matched by styling the widget. It was matched by setting Horizon's **global** type and colour settings on this store, and the widget followed — down to the uppercase ADD, which is the theme's own button copy here rather than a `text-transform` in the widget's CSS. The same block dropped into the client's theme comes out in their brand without touching its CSS — which is the behaviour you want from something that has to sit under Add to Cart forever. Each inherited token keeps the design's original hex as a `var()` fallback, so a theme that doesn't expose those properties still renders as specified.
 
 Two colours are deliberately *not* inherited, both commented in the CSS: the card's light-grey surface (the design's own, and it would vanish into a scheme background) and the ADD hover fill (Horizon derives its primary-button hover by *lightening* a near-black source, which would invert this design's darken-on-hover).
 

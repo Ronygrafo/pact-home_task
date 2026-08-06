@@ -57,7 +57,7 @@ It doesn't bundle, discount, or automate. It shows what the store team chose, in
 | Carousel behaviour | Done — scroll, snap, arrow-toggle and swipe all exercised in a browser |
 | Add to cart | Done — wired to the theme's own `<product-form-component>`; drawer refresh, bubble count and `_source` on the line item all confirmed |
 | Translations | Done — 5 new schema keys, translated across all 20 locale files |
-| QA matrix | **Green** — every section run, zero failures. Three known gaps, all environment-blocked: see [02-qa-checklist.md](../plans/02-qa-checklist.md) |
+| QA matrix | **Green** — every section run, zero failures. Two known gaps, both environment-blocked: see [02-qa-checklist.md](../plans/02-qa-checklist.md) |
 
 ### Files
 
