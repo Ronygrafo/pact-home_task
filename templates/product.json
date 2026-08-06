@@ -306,6 +306,7 @@
             "cross_sell_mwTMrk": {
               "type": "rr-cross-sell",
               "name": "t:names.cross_sell",
+              "disabled": true,
               "settings": {
                 "heading": "Pairs with",
                 "max_products": 8,
