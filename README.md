@@ -115,7 +115,13 @@ The controls row collapses to a stacked layout through a **container query**, no
 
 Token values live in [docs/design-tokens.md](docs/design-tokens.md), the visual source of truth. The non-negotiables from the reference: zero border radius everywhere, monochrome, the theme's heading face for UI text and body face for content text, and the 2px active border implemented as an inset `box-shadow` so focusing the select never shifts the layout by a pixel.
 
-Type families resolve from the theme's own `--font-heading--family` / `--font-body--family` rather than a widget-owned font stack, so the widget follows the store's typography instead of fighting it.
+**The widget ships almost no design values of its own.** Type families resolve from Horizon's `--font-heading--family` / `--font-body--family`; colour resolves from the theme's palette — `--color-foreground`, `--color-background`, `--color-input-border`, with the muted greys derived from the foreground at calibrated alphas. No extra font request, no second palette.
+
+So the reference wasn't matched by styling the widget. It was matched by setting Horizon's **global** type and colour settings on this store, and the widget followed. The same block dropped into the client's theme comes out in their brand without touching its CSS — which is the behaviour you want from something that has to sit under Add to Cart forever. Each inherited token keeps the design's original hex as a `var()` fallback, so a theme that doesn't expose those properties still renders as specified.
+
+Two colours are deliberately *not* inherited, both commented in the CSS: the card's light-grey surface (the design's own, and it would vanish into a scheme background) and the ADD hover fill (Horizon derives its primary-button hover by *lightening* a near-black source, which would invert this design's darken-on-hover).
+
+What the widget does own structurally — spacing, card and media widths, control heights — is declared as `--cs-*` custom properties in a single block at the top of `assets/rr-cross-sell.css`. Restyling for a different brand is one edit in one place, not a hunt through selectors.
 
 ---
 
@@ -143,7 +149,15 @@ Why it comes out that way:
 - **Two static assets**, both served from the theme: one CSS file, one ES module. No framework, no bundler.
 - **Images** carry explicit `width`/`height`, `srcset` at 1x/2x and `loading="lazy"` — space reserved, no layout shift.
 
-One number I'd rather have lower: `assets/rr-cross-sell.js` is ~8.4 KB raw, most of it the inline comments explaining the decisions above, and it hasn't been measured minified or gzipped.
+Weight, measured rather than estimated:
+
+| Asset | Raw | Gzipped |
+|---|---|---|
+| `assets/rr-cross-sell.js` | 8.4 KB | **3.1 KB** |
+| `assets/rr-cross-sell.css` | 14.7 KB | **4.8 KB** |
+| | | **8.0 KB total** |
+
+Both are served from the theme's own CDN, so gzipped is what shoppers actually pay. The raw JS file is 8.4 KB because 86 of its 229 lines are comments explaining the decisions above — a deliberate trade for the next developer that costs nothing over the wire.
 
 ---
 
