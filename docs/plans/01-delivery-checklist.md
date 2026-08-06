@@ -5,7 +5,7 @@
 **Deadline:** 3 business days from receipt
 **Goal:** Replace a paid cross-sell app with a custom, theme-native section that is faster, consistent, and demo-ready.
 
-> **Status — Day 0 complete.** Development store `rr-pact-home-task.myshopify.com` is live on Horizon 4.1.3, the repo is published at [Ronygrafo/pact-home_task](https://github.com/Ronygrafo/pact-home_task) with the untouched base theme as its baseline commit, and the questions are with Pact. Next up is §2.1 — the metafield definition — then the block itself. Architecture decisions and their rationale live in [cross-sell-widget.md](cross-sell-widget.md).
+> **Status — widget built.** The "Pairs With" block (`blocks/cross-sell.liquid`, `snippets/cross-sell-card.liquid`, `assets/cross-sell.js`) is implemented and wired into `templates/product.json` as the last block in `_product-details`, right after `buy_buttons_eYQEYi`. `shopify theme check` runs clean — 348 files, 0 offenses. R1–R3 are verified against real HTML from `shopify theme dev` (product `rr-trainer-low`, 7 assigned companions); R4 is implemented against the token sheet but hasn't been compared side-by-side with the reference mockup yet. What's left: a full browser QA pass (§7 — cart drawer, the isolation race condition, keyboard, responsive, and two variant-mode edge cases the current catalog can't exercise), then the three deliverables below. Architecture decisions and their rationale live in [cross-sell-widget.md](cross-sell-widget.md).
 
 ---
 
@@ -24,10 +24,12 @@
 
 | # | Requirement | Done |
 |---|---|---|
-| R1 | The store team can **manually choose** which products appear for each product | [ ] |
-| R2 | Widget renders on the product page **directly below the Add to Cart button** | [ ] |
-| R3 | Shoppers can **add to cart from inside the widget** | [ ] |
+| R1 | The store team can **manually choose** which products appear for each product | [x] |
+| R2 | Widget renders on the product page **directly below the Add to Cart button** | [x] |
+| R3 | Shoppers can **add to cart from inside the widget** | [x] |
 | R4 | Visual output **matches the reference design** as closely as possible | [ ] |
+
+> R4 is implemented against the token sheet in [../design-tokens.md](../design-tokens.md) — zero border radius, monospace UI type, monochrome, ~1.3 cards visible — but has not yet been compared side-by-side with [../design-mockup.png](../design-mockup.png) in a browser. Leaving it unchecked until that comparison happens; see §7.
 
 ---
 
@@ -40,51 +42,53 @@
 - [x] Manual-only, per the brief — no fallback layer. If the metafield list is empty, the section renders nothing.
 
 ### 2.2 Placement (R2)
-> Updated for Horizon: this theme has **no `main-product.liquid`**. The PDP is `sections/product-information.liquid`, which renders `{% content_for 'blocks' %}` and accepts `@theme`, so a public theme block can be positioned anywhere in the product column from the editor — with zero base files modified.
+> Updated for Horizon: this theme has **no `main-product.liquid`**. The PDP is `sections/product-information.liquid`, which renders `{% content_for 'blocks' %}` and accepts `@theme`, so a public theme block can be positioned anywhere in the product column from the editor — with zero base **source** files modified.
 
-- [ ] Implement as a **public theme block** (`blocks/cross-sell.liquid`), placeable as the next sibling of `buy-buttons` inside the product details group.
-- [ ] Ship a `templates/product.json` preset with the block already positioned below Add to Cart.
-- [ ] Document the exact theme files touched — target is **none**, beyond additive locale keys.
+- [x] Implement as a **public theme block** (`blocks/cross-sell.liquid`), placeable as the next sibling of `buy-buttons` inside the product details group.
+- [x] Ship a `templates/product.json` preset with the block already positioned below Add to Cart — `cross_sell_mwTMrk` is the last entry in `_product-details`'s `block_order`, right after `buy_buttons_eYQEYi`.
+- [x] Document the exact theme files touched — zero Horizon **source** files touched, beyond additive schema-locale keys. `templates/product.json` also changed, but that's merchant configuration written by the theme editor, not theme code — it doesn't count against the "zero source files" claim.
 
 ### 2.3 Markup & rendering
-- [ ] `snippets/cross-sell-card.liquid` — one product card.
-- [ ] Server-rendered in Liquid. **No client-side product fetch** — the data is already on the page.
-- [ ] Read the assignment through `closest.product`, not the global `product`.
-- [ ] Card contents, per the design: product image · title · price · option selector · ADD button.
-- [ ] Variant selector driven by the product's **real option name**, not a hardcoded "Size".
-- [ ] Single-variant products: hide the selector, enable ADD immediately.
-- [ ] Sold-out variants: disabled `<option>` with a "— Sold out" suffix.
-- [ ] Line-clamp long titles (2 lines) so cards never break alignment.
-- [ ] Compare-at price support (strikethrough) if the theme uses it.
+- [x] `snippets/cross-sell-card.liquid` — one product card.
+- [x] Server-rendered in Liquid. **No client-side product fetch** — the data is already on the page.
+- [x] Read the assignment through `closest.product`, not the global `product`.
+- [x] Card contents, per the design: product image · title · price · option selector · ADD button.
+- [x] Variant selector driven by the product's **real option name**, not a hardcoded "Size".
+- [x] Single-variant products: hide the selector, enable ADD immediately.
+- [x] Sold-out variants: disabled `<option>` with an "— Unavailable" suffix (`content.unavailable`, a key the theme already ships).
+- [x] Line-clamp long titles (2 lines) so cards never break alignment.
+- [x] Compare-at price support (strikethrough) if the theme uses it — via `{% render 'price' %}`, the theme's own snippet.
 
 ### 2.4 Carousel
-- [ ] CSS **scroll-snap** + `overflow-x: auto`. Zero third-party libraries.
-- [ ] Prev/Next arrows, top-right, matching the design.
-- [ ] Arrow **disabled state** when at either end (the reference shows the left arrow greyed out).
-- [ ] Works with touch swipe, trackpad, keyboard (Tab/Arrow keys), and with JS disabled (still scrollable).
-- [ ] Hide scrollbar visually but keep it accessible.
+- [x] CSS **scroll-snap** + `overflow-x: auto`. Zero third-party libraries.
+- [x] Prev/Next arrows, top-right, matching the design.
+- [x] Arrow **disabled state** when at either end (the reference shows the left arrow greyed out) — via `aria-disabled`, updated by `assets/cross-sell.js`.
+- [x] Works with touch swipe, trackpad, keyboard (Tab/Arrow keys), and with JS disabled (still scrollable) — the scroller itself is plain CSS scroll-snap; arrows are progressive enhancement only.
+- [x] Hide scrollbar visually but keep it accessible — `scrollbar-width: none` + the scroller keeps `tabindex="0"` and an `aria-label`.
 
 ### 2.5 Add to cart (R3)
-> Updated for Horizon: follow the contract already in `assets/product-form.js` instead of hand-rolling a second cart path.
+> Updated for Horizon: cards don't POST to the cart themselves. Each one renders the theme's own `<product-form-component>` / `{% form 'product' %}`, the same pattern `snippets/quick-add.liquid` uses — no second cart path hand-rolled here.
 
-- [ ] POST to `Theme.routes.cart_add_url` with the selected variant ID, using `fetchConfig` from `@theme/utilities`.
-- [ ] Button **state machine**: `disabled` (no option chosen) → `enabled` → `loading` → `added` → back to `enabled`.
-- [ ] Error handling: 422 / sold out → inline message, never a silent failure.
-- [ ] Refresh the theme's cart UI by dispatching the cart events from `@shopify/events`, so the drawer and cart bubble re-render through the theme's own pipeline. One round trip, no full reload.
-- [ ] Add a line item property `_source: pdp-cross-sell` so the client can attribute revenue to the widget.
+- [x] Each card submits through `<product-form-component>` — verified server-side: 7/7 companion cards on `rr-trainer-low` render exactly one, with `properties[_source] = pdp-cross-sell` present in the form.
+- [x] Button **state machine**: `disabled` (no option chosen) → `enabled` → `loading` → `added` → back to `enabled` — wired via the theme's own `add-to-cart-component`, plus this widget's own `.add-to-cart-text--added` bridge (see the JavaScript contract in [cross-sell-widget.md](cross-sell-widget.md)). Disabled/enabled states verified per variant mode (`none`, `option`, sold-out).
+- [x] Error handling: 422 / sold out → inline message, never a silent failure — inherited from `assets/product-form.js`, not rebuilt here.
+- [x] Refresh the theme's cart UI by dispatching the cart events from `@shopify/events`, so the drawer and cart bubble re-render through the theme's own pipeline. One round trip, no full reload — same inherited pipeline; **not yet watched happen in a browser**, see §7.
+- [x] Add a line item property `_source: pdp-cross-sell` so the client can attribute revenue to the widget — confirmed present on all 7 cards.
 
 ### 2.6 Design fidelity (R4)
-- [ ] Implement against the token sheet in [../design-tokens.md](../design-tokens.md).
-- [ ] All interaction states built: default · hover · focus-visible · active · disabled · loading · success.
-- [ ] Mobile layout designed deliberately (no mobile comp was given — see recommendations).
-- [ ] Zero layout shift: reserve image aspect ratio, fixed card height.
+- [x] Implement against the token sheet in [../design-tokens.md](../design-tokens.md).
+- [x] All interaction states built: default · hover · focus-visible · active · disabled · loading · success.
+- [x] Mobile layout designed deliberately (no mobile comp was given — see recommendations) — token scale steps down at 1199px and 749px; arrows hide below 749px.
+- [x] Zero layout shift: reserve image aspect ratio, fixed card height.
+
+> Built against spec, but not yet held up against [../design-mockup.png](../design-mockup.png) side-by-side in a browser — that comparison is the open item behind R4 above.
 
 ### 2.7 Quality gates
-- [ ] **Performance:** no external JS/CSS; component JS under ~3 KB; `loading="lazy"` + `srcset`/`sizes` on images; CSS scoped to the block via `{% stylesheet %}`; JS as a module.
-- [ ] **Accessibility (WCAG 2.1 AA):** labelled select, `aria-label` on arrows, `aria-live` region announcing "Added to cart", visible focus rings, keyboard-operable end to end.
-- [ ] **i18n:** every visible string through `| t` with keys in `locales/*.json`. No hardcoded copy.
-- [ ] **Merchant settings** in the schema: heading text, products-per-view, show/hide price.
-- [ ] `shopify theme check` passes clean.
+- [ ] **Performance:** no external JS/CSS ✓ · CSS scoped to the block via `{% stylesheet %}` ✓ · JS shipped as an ES module, no framework ✓ · `loading="lazy"` + `srcset`/`sizes` on card images ✓ — but `assets/cross-sell.js` measures **~8.4 KB** raw, over the ~3 KB target set in this plan (most of it is the inline rationale comments documented throughout the file); not yet measured minified/gzipped or checked against a Lighthouse run.
+- [x] **Accessibility (WCAG 2.1 AA):** labelled select, `aria-label` on arrows, `aria-live` region announcing "Added to cart", visible focus rings — all structurally in place and code-verified (live region confirmed 7/7). A full keyboard-only walkthrough is still open, see §7.
+- [x] **i18n:** every visible string through `| t` with keys in `locales/*.json`. No hardcoded copy — 5 new schema keys, translated across all 20 locale files (`en` + 19 others); no new storefront-facing keys needed.
+- [x] **Merchant settings** in the schema: heading text, products-per-view, show/hide price — plus `max_products`, not originally scoped.
+- [x] `shopify theme check` passes clean — 348 files, 0 offenses.
 - [ ] Cross-browser: Chrome, Safari, Firefox, iOS Safari.
 
 ---
@@ -123,18 +127,20 @@
 
 ## 7 · Definition of Done — QA matrix
 
-Test each of these before recording the Loom:
+Test each of these before recording the Loom. Checked rows were confirmed against real HTML served by `shopify theme dev` — product `rr-trainer-low` (7 companions assigned) and 6 products with none assigned. Everything else needs an actual browser session; none of it has been exercised yet.
 
-- [ ] Product with **no** cross-sells assigned → section renders nothing, no empty container.
-- [ ] Product with 1 cross-sell → no arrows, no broken carousel.
-- [ ] Product with 8 cross-sells → smooth scroll, arrows toggle correctly at both ends.
-- [ ] Cross-sell product with a **single variant** → no selector, ADD enabled.
-- [ ] Cross-sell product **fully sold out** → ADD disabled with clear reason.
-- [ ] One variant sold out among several → that option disabled only.
+- [x] Product with **no** cross-sells assigned → section renders nothing, no empty container. Confirmed on 6 products.
+- [ ] Product with 1 cross-sell → no arrows, no broken carousel. **Blocked:** the demo catalog only has products with 0 or 7 companions assigned, none with exactly 1.
+- [ ] Product with 8 cross-sells → smooth scroll, arrows toggle correctly at both ends. 7 of 8 confirmed server-rendered with carousel controls present (`aria-controls`, initial `aria-disabled` state); the interactive scroll and arrow-toggle behaviour hasn't been exercised in a browser yet.
+- [x] Cross-sell product with a **single variant** → no selector, ADD enabled.
+- [x] Cross-sell product **fully sold out** → ADD disabled with clear reason.
+- [x] One variant sold out among several → that option disabled only.
+- [ ] Cross-sell companion using variant mode `link` (more than 2 options, or more than 12 variants) → renders a "Choose" link instead of a form, no ADD button. **Blocked:** no product in the catalog has more than 2 options yet — this branch of `snippets/cross-sell-card.liquid` has never run.
 - [ ] Product with no image → placeholder, layout intact.
-- [ ] Very long product title → clamped, cards stay aligned.
+- [x] Very long product title → clamped, cards stay aligned. Title reaches the DOM intact (verified); the 2-line clamp itself is a static CSS rule, not yet eyeballed in a browser.
 - [ ] Adding the same product twice → quantity increments correctly.
 - [ ] Cart drawer/counter updates without a page reload.
+- [ ] The isolation test: change the main product's size, then click ADD on a companion card in the same instant — the companion, not the main product, must be added to the cart. Exercises the `<product-card>` boundary decision, see the JavaScript contract in [cross-sell-widget.md](cross-sell-widget.md).
 - [ ] Mobile 375px, tablet 768px, desktop 1440px, ultra-wide 1920px.
 - [ ] Keyboard-only run through the whole widget.
 - [ ] Lighthouse on the PDP: no regression vs. the base theme.
@@ -145,6 +151,6 @@ Test each of these before recording the Loom:
 
 | Day | Focus |
 |---|---|
-| **Day 1** | ~~Questions sent · dev store + repo~~ ✅ · demo data · metafield definition · Liquid markup and card structure · static design match |
-| **Day 2** | Carousel + JS add-to-cart + states + responsive + a11y pass · QA matrix · write-up |
+| **Day 1** | ~~Questions sent · dev store + repo · demo data · metafield definition · Liquid markup and card structure · static design match~~ ✅ |
+| **Day 2** | ~~Carousel + JS add-to-cart + states + responsive + a11y pass~~ ✅ — code-complete, `shopify theme check` clean. **Still open:** the full browser QA pass (§7) and the write-up |
 | **Day 3** | Loom recording · README polish · final QA from incognito · submit |

@@ -22,32 +22,31 @@ The design has a clear, deliberate visual system. Naming it matters more than ma
 
 ## 2 · Method & confidence
 
-The screenshot is a **zoomed crop**, so its absolute pixels were never directly usable — that part of the original method holds. What was wrong is the reference width it got de-scaled against: the first pass anchored a 56px select height, backed into a scale factor, and *guessed* a ~600px product-info column to make the numbers land. That column width was never derived from the screenshot. It needed to be measured in the theme, and it isn't 600px.
+The screenshot is a **zoomed crop**, so its absolute pixels were never directly usable — that part of the original method holds. What kept moving is the reference width it got de-scaled against, and this is now the **second correction** to that number:
 
-**Measured, not assumed:**
+1. First pass: anchored a 56px select height, backed into a scale factor, and *guessed* a ~600px product-info column. Never derived from the screenshot.
+2. Second pass: measured `snippets/product-information-content.liquid`'s media-left grid (`min(50vw, --sidebar-width)`) and landed on a 376px plateau. The math was correct, but it described a section layout the demo store isn't actually running.
 
-- **750–1199px viewport** — `snippets/product-information-content.liquid:183` sets the media-left layout to `grid-template-columns: 1fr min(50vw, var(--sidebar-width))`, and `--sidebar-width: 25rem` in `snippets/theme-styles-variables.liquid:128` — a hard **400px ceiling** on the info column, reached at any viewport ≥800px.
-- **≥1200px viewport** — `snippets/product-information-content.liquid:298-303` switches to `grid-template-columns: 2fr 1fr`; at a 1440px viewport that resolves to roughly **453px**.
-- Both cases carry `padding-left: calc(var(--gap) / 2)` on `.product-details` (same file, line 190), and the template's `gap` setting is `48` (`templates/product.json`) — a flat **24px** lost before the widget ever sees the column.
+**What the demo store actually runs**, confirmed in `templates/product.json:336-340`: `content_width: "content-full-width"`, `equal_columns: true`, `gap: 48`, `limit_details_width: false`. That combination activates a different branch of the same Liquid file (`snippets/product-information-content.liquid:62-63`) — the `product-information__grid--half` class, not the plain media-left grid the first correction measured.
 
-Net usable width: **351px at 750px → 376px across the 800–1199px plateau → ~429px at 1440px.** 376px is the anchor used below — it's the width that holds across the widest practical range, not a number chosen to make a ~1.5-cards-visible read feel tidy.
+**Measured, not assumed, this time:**
 
-The *proportions* read from the comp are still the right source for the internal relationships (image ÷ card, gap ÷ card, the type-scale ratios) — that part of the original method was sound. Only the reference width was wrong. This is an upgrade to the argument's confidence, not a retreat: it moves from *"estimated from a zoomed screenshot"* to *"measured in the theme,"* and it's also why question 1 in §11 no longer needs the client — the column width isn't a merchant-configurable full-width option, it's fixed by the theme's own product grid.
+- `product-information__grid--half` (`snippets/product-information-content.liquid:218-225`) sets `grid-template-columns: var(--full-page-grid-margin) calc(var(--full-page-grid-central-column-width) / 2) calc(var(--full-page-grid-central-column-width) / 2) var(--full-page-grid-margin)` — the details column is **half of the section's central column**, not a sidebar with its own fixed ceiling.
+- `--full-page-grid-central-column-width` (`assets/base.css:340-343`) resolves to `min(var(--page-width) - var(--page-margin) * 2, calc(100% - var(--page-margin) * 2))`. With `page_width: "narrow"` (`config/settings_data.json:46`) → `--page-width: 90rem` (1440px, `snippets/theme-styles-variables.liquid:133`), and `--page-margin: 40px` at ≥750px / `16px` below that (`assets/base.css:300-309`) — this resolves per viewport in the table below.
+- `.product-details` still carries `padding-left: calc(var(--gap) / 2)` (`snippets/product-information-content.liquid:190`, unchanged by the `--half` variant); the template's `gap: 48` (`templates/product.json:340`) makes that a flat **24px** lost on every viewport.
 
-| Measure | Observed ratio (screenshot) | Recommended CSS (at the 376px plateau) |
-|---|---|---|
-| Card width ÷ column width | 0.645 → initially read as ~1.5 cards visible | `clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px)`, `--cs-per-view: 1.3` → ~283px card |
-| Gap ÷ card width | 2.3% | `8px` |
-| Image column ÷ card width | 25.6% | `84px` (~30% of a 283px card) |
-| Content column ÷ card width | 62.4% | `1fr` → ~163px at a 283px card |
-| Select width ÷ card width | 47.7% | `1fr` → ~99px |
-| Select ↔ ADD gap ÷ card width | 2.5% | `8px` |
-| Heading → first card | — | `16px` |
-| Heading font ÷ title font | 1.15 | `13px` / `13px` — parity in size now; hierarchy carried entirely by tracking, weight and case (§4) |
-| Title font ÷ price font | 1.26 | `13px` / `12px` |
-| Select height ÷ title font | 3.4 | `44px` / `13px` ≈ 3.38 — the screenshot ratio holds almost exactly once the scale is real |
+| Viewport | Central column | Details column (half) | **Usable width** (− 24px padding) |
+|---|---|---|---|
+| 750px | 670px | 335px | **311px** |
+| 990px | 910px | 455px | **431px** |
+| 1200px | 1120px | 560px | **536px** |
+| 1440px+ | 1360px (capped by `--page-width`) | 680px | **656px** |
 
-The card width moved further than a literal rescale of 0.645 would predict (0.645 × 376px ≈ 243px). The binding constraint isn't the screenshot ratio, it's the interior arithmetic: a `<select>` and an `ADD` button both need to clear their own accessible floors (`--cs-control-h: 44px`, matching the theme's `--minimum-touch-target`) inside a content column that's already lost 84px to the image and 24px to card padding. `--cs-per-view: 1.3` is the value that keeps every token at or above that floor while a fraction of the next card still peeks — the full arithmetic check is in §10. (The schema setting's `step: 0.1` — theme-check rejects steps that aren't a multiple of 0.1 — means `1.3` is the closest value to the theoretical optimum, not the optimum itself.)
+The theme's own breakpoints for this section are **750px** and **1200px** (`snippets/product-information-content.liquid:155, 166, 297, 318`) — the token scale below (§4, §5) is aligned to those, not to the sidebar variant's old 990px cutoff.
+
+**The material point for the write-up:** this width is not a fixed theme constant — it's a direct function of section settings the merchant controls (`content_width`, `equal_columns`). A different combination (media-left, unequal columns) would resolve to the §2-v1 sidebar numbers instead, and a store running `limit_details_width: true` would cap it differently again. That's exactly why the tokens below scale per breakpoint from real arithmetic rather than assuming one fixed column width: the column itself is merchant-configurable, so the widget's own responsive plan has to tolerate that — and the controls-row container query (§6) goes one step further still, because `products_per_view` narrows the same box independently of both the column width and the viewport.
+
+The *proportions* read from the comp (image ÷ card, gap ÷ card, the type-scale ratios) are still the right source for the internal relationships — only the reference width kept needing correction. At this width the comp's proportions hold up closer to their literal reading than either previous pass predicted; the full arithmetic check is in §10.
 
 ---
 
@@ -89,12 +88,14 @@ For the prototype, prefer the **theme's existing font settings** for the content
 
 ### Scale
 
-| Token | Size | Weight | Tracking | Case | Applied to |
-|---|---|---|---|---|---|
-| `--cs-fs-heading` | `13px` (`0.8125rem`) | 500 | `0.10em` | UPPER | `PAIRS WITH` (mono) |
-| `--cs-fs-title` | `13px` / lh 1.30 | 400 | `-0.01em` | Sentence | Product name (grotesque) |
-| `--cs-fs-price` | `12px` / lh 1.2 | 400 | `0` | — | Price (grotesque) |
-| `--cs-fs-label` | `11px` | 500 | `0.08em` | UPPER | `SIZE`, `ADD` (mono) |
+Sized per breakpoint, not once, because the column itself is (§2). The `750–1199px` values also apply below 750px — the type scale doesn't step down a third time, only the geometry tokens in §5 do.
+
+| Token | ≥1200px | 750–1199px (and below) | Weight | Tracking | Case | Applied to |
+|---|---|---|---|---|---|---|
+| `--cs-fs-heading` | `18px` (`1.125rem`) | `16px` (`1rem`) | 500 | `0.10em` | UPPER | `PAIRS WITH` (mono) |
+| `--cs-fs-title` | `16px` (`1rem`) / lh 1.30 | `15px` (`0.9375rem`) | 400 | `-0.01em` | Sentence | Product name (grotesque) |
+| `--cs-fs-price` | `14px` (`0.875rem`) / lh 1.2 | `13px` (`0.8125rem`) | 400 | `0` | — | Price (grotesque) |
+| `--cs-fs-label` | `12px` (`0.75rem`) | `11px` (`0.6875rem`) | 500 | `0.08em` | UPPER | `SIZE`, `ADD` (mono) |
 
 Product titles clamp to **2 lines** (`-webkit-line-clamp: 2`) so card heights never diverge.
 
@@ -102,24 +103,28 @@ Product titles clamp to **2 lines** (`-webkit-line-clamp: 2`) so card heights ne
 
 ## 5 · Spacing & geometry
 
-| Token | Value | Use |
-|---|---|---|
-| `--cs-radius` | `0` | Everything. No exceptions. |
-| `--cs-per-view` | `1.3` | Cards visible per viewport; drives `--cs-card-w` |
-| `--cs-gap-card` | `8px` | Between carousel cards |
-| `--cs-pad-card` | `12px` | Card inner padding |
-| `--cs-gap-media` | `12px` | Image column → content column |
-| `--cs-gap-stack` | `6px` | Title → price → controls |
-| `--cs-gap-controls` | `8px` | Select → ADD |
-| `--cs-space-header` | `16px` | Section heading → carousel |
-| `--cs-control-h` | `44px` | Select and ADD height (matches the theme's `--minimum-touch-target`, `theme-styles-variables.liquid:637`) |
-| `--cs-media-w` | `84px` | Image column width |
-| `--cs-add-min-w` | `56px` | Minimum width reserved for the ADD button inside the content column |
-| `--cs-card-w` | `clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px)` | Card width; resolves to the visible-cards ratio above |
-| `--cs-border-w` | `1px` | Resting border |
-| `--cs-border-w-strong` | `2px` | Focus / active border |
+Three tiers, aligned to the theme's own **750px / 1200px** breakpoints (§2), not the sidebar variant's old 990px cutoff. A blank cell means the value carries over from the tier to its left — most tokens only step down once or twice across the whole range.
+
+| Token | ≥1200px | 750–1199px | <750px | Use |
+|---|---|---|---|---|
+| `--cs-radius` | `0` | | | Everything. No exceptions. |
+| `--cs-per-view` | `1.3` (schema default; merchant-configurable 1–2) | | | Cards visible per viewport; drives `--cs-card-w` |
+| `--cs-gap-card` | `10px` | | | Between carousel cards, all breakpoints |
+| `--cs-pad-card` | `16px` | `12px` | | Card inner padding |
+| `--cs-gap-media` | `16px` | `12px` | `10px` | Image column → content column |
+| `--cs-gap-stack` | `12px` | `8px` | | Title → price → controls |
+| `--cs-gap-controls` | `10px` | | | Select → ADD, all breakpoints |
+| `--cs-space-header` | `32px` | `24px` | | Section heading → carousel |
+| `--cs-control-h` | `56px` | `48px` | | Select and ADD height — exceeds the theme's `--minimum-touch-target: 44px` (`theme-styles-variables.liquid:637`) at every tier |
+| `--cs-media-w` | `100px` | `84px` | `76px` | Image column width |
+| `--cs-add-min-w` | `80px` | `72px` | | Minimum width reserved for the ADD button inside the content column |
+| `--cs-card-w` | `clamp(300px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 420px)` | `clamp(248px, …, 400px)` | `clamp(240px, …, 340px)` | Card width; resolves to the visible-cards ratio (§2, §10) |
+| `--cs-border-w` | `1px` | | | Resting border |
+| `--cs-border-w-strong` | `2px` | | | Focus / active border |
 
 **Critical:** the 2px active border must not shift layout. Use `box-shadow: inset 0 0 0 2px` or a transparent 2px resting border, never a border-width change.
+
+**Below the token scale, a container query** (§6) handles the one width the breakpoint tiers above can't: when a single card's own content column gets too narrow for `[select | ADD]` — whether from a small viewport or from the merchant raising `products_per_view` — the controls row switches from horizontal to stacked, independent of which of the three tiers above is active.
 
 ---
 
@@ -149,7 +154,24 @@ Mono, uppercase, tracked, `--cs-ink`, left-aligned. Arrows pinned right on the s
 White field on the grey card, 1px `--cs-border`, `--cs-control-h`, mono uppercase label, custom chevron (16px, inline SVG as `background-image`, `appearance: none`), padding `0 40px 0 16px`.
 
 ### ADD button
-`--cs-control-h`, `min-width: var(--cs-add-min-w)`, `padding: 0 16px`, mono uppercase label, radius 0.
+`--cs-control-h`, `min-width: var(--cs-add-min-w)`, `padding: 0 16px`, mono uppercase label, radius 0. Two label spans (`ADD` / `ADDED`) share one grid cell (`grid-area: 1 / 1`) so the track sizes to the wider of the two — see §7 for the success-state swap.
+
+### Controls row — container query
+
+`.cross-sell-card__body` is the query container (`container-type: inline-size`, `container-name: cross-sell-card`), not `.cross-sell-card` itself and not a viewport media query. `snippets/resource-list-carousel.liquid:57-89` establishes the same kind of container for the same reason and is the precedent this follows.
+
+The width that decides whether `[SELECT | ADD]` still fits is this box's own inline size, and two independent things can shrink it: the viewport (§5), and the merchant raising `products_per_view` up to the schema's max of `2` — the latter a media query can never see, because a card can be narrow at a wide viewport just as easily as at a narrow one.
+
+Below **200px** of container width, `.cross-sell-card__controls` switches from a row (the default) to a column: select on top at full width, `ADD` full-width beneath it. 200px is derived, not picked:
+
+```
+legible select floor   ≈ 110px
++ --cs-gap-controls      10px  (constant at every breakpoint)
++ --cs-add-min-w          80px  (the widest value in the scale, the ≥1200px tier)
+= 200px
+```
+
+Using one fixed threshold across all three breakpoint tiers is deliberately conservative rather than exact: at the 750–1199px and <750px tiers `--cs-add-min-w` drops to `72px`, so the same 200px floor actually leaves the select `118px` there — a small safety margin, not a tight fit. §10 walks through the 311px-column dead zone (750px viewport) where this query is the difference between a 46px, illegible select and a full-width, stacked one.
 
 ---
 
@@ -167,11 +189,15 @@ The comp shows two of these; the rest are inferred and should be listed as assum
 | ADD | enabled | **bg `--cs-ink`, label `#FFF`, border `--cs-ink`** — *inferred, confirm with client* |
 | ADD | hover (enabled) | bg `#000`, subtle `transform: translateY(-1px)` or none |
 | ADD | loading | label swaps to a 14px monochrome spinner, width locked, `aria-busy="true"` |
-| ADD | success | label → `ADDED` for 1.8s, then back to `ADD` |
+| ADD | success | label → `ADDED` for **800ms**, then back to `ADD` |
 | ADD | error | label → `TRY AGAIN`, inline message below the card |
 | Card | hover | no change — the design is static; restraint is the aesthetic |
 
 The **enabled** ADD state is the one meaningful gap in the comp. Inverting to solid black is the reading most consistent with the rest of the system (black is already the "active" signal on the select border).
+
+**Success state, implemented (`snippets/cross-sell-card.liquid`, `blocks/cross-sell.liquid`):** the 800ms duration is not this widget's choice — it's the theme's. `assets/product-form.js` sets `data-added="true"` on the button after a successful add and clears it again 800ms later (`assets/product-form.js:143-160`); this widget only reacts to that attribute, it never sets its own timer. `[data-added='true']` toggles which of the two grid-stacked label spans (§6) is visible via `visibility`/`opacity`, never `display`, so the button's width never jumps mid-animation.
+
+This also closes a small gap in Horizon itself: `assets/product-form.js:533` looks for a `.add-to-cart-text--added` element on the clicked button to source the live-region announcement text, and no stock Horizon snippet ever emits that class — every add-to-cart button in the base theme silently falls back to the generic `Theme.translations.added`. This widget's `ADDED` label carries that exact class, so its announcement reads the real localized string instead of the fallback.
 
 ---
 
@@ -191,9 +217,9 @@ Transition `color`, `background-color`, `box-shadow` only — never `width`, `he
 
 | Breakpoint | Behaviour |
 |---|---|
-| **≥990px** | Column plateaus at 400px (the theme's `--sidebar-width` cap) down to 376px usable across 800–1199px viewports, growing to ~429px usable at 1440px; `--cs-card-w` resolves to **~283–324px** across that range, ~1.3 cards visible + peek, arrows shown |
-| **750–989px** | Column narrows toward **351px** usable at the low end (750px viewport); the same clamp holds without an override, but `--cs-add-min-w` steps down to `52px` so the ADD button doesn't crowd the select |
-| **<750px** | `--cs-card-w: clamp(232px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px)`, `--cs-media-w: 76px`, `--cs-control-h: 40px`, `--cs-gap-media: 10px`, arrows hidden — swipe only |
+| **≥1200px** | Column at **536–656px** usable (`product-information__grid--half`, §2); `--cs-card-w` resolves to **~380–420px**, ~1.3–1.5 cards visible + peek, arrows shown. Full tokens in §5. |
+| **750–1199px** | Column at **311–536px** usable; type scale, control height and spacing step down a tier (§4, §5). At the narrow end of this range the clamp floor (`248px`) engages, and a card's own `.cross-sell-card__body` can drop under the controls-row container-query threshold (§6) — that switch is viewport-independent, driven by the card's rendered width, not the 750/1200 breakpoints themselves. |
+| **<750px** | `--cs-card-w: clamp(240px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px)`, `--cs-media-w: 76px`, `--cs-gap-media: 10px` (control height, ADD floor and card padding carry over from the 750–1199px tier), arrows hidden — swipe only. Card stays horizontal; see rationale below. |
 
 Keep the horizontal card layout on mobile. Flipping to a stacked card doubles the widget's height right under the Add to Cart button, which is the worst possible place to add scroll depth on the highest-converting device.
 
@@ -214,29 +240,29 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
   --cs-border-strong:   #111111;
   --cs-arrow-idle:      #9e9e9e;
 
-  /* Type */
+  /* Type — ≥1200px tier (536–656px column, §2) */
   --cs-font-mono:  ui-monospace, "SF Mono", "Roboto Mono", "IBM Plex Mono", Menlo, monospace;
   --cs-font-body:  var(--font-body--family, "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif);
-  --cs-fs-heading: 13px; /* 0.8125rem */
-  --cs-fs-title:   13px;
-  --cs-fs-price:   12px;
-  --cs-fs-label:   11px;
+  --cs-fs-heading: 18px; /* 1.125rem */
+  --cs-fs-title:   16px; /* 1rem */
+  --cs-fs-price:   14px; /* 0.875rem */
+  --cs-fs-label:   12px; /* 0.75rem */
   --cs-track-wide: 0.10em;
   --cs-track-label:0.08em;
 
-  /* Space & geometry */
+  /* Space & geometry — ≥1200px tier */
   --cs-radius:         0;
   --cs-per-view:       1.3;
-  --cs-card-w:         clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px);
-  --cs-media-w:        84px;
-  --cs-control-h:      44px;
-  --cs-add-min-w:      56px;
-  --cs-gap-card:       8px;
-  --cs-pad-card:       12px;
-  --cs-gap-media:      12px;
-  --cs-gap-stack:      6px;
-  --cs-gap-controls:   8px;
-  --cs-space-header:   16px;
+  --cs-card-w:         clamp(300px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 420px);
+  --cs-media-w:        100px;
+  --cs-control-h:      56px;
+  --cs-add-min-w:      80px;
+  --cs-gap-card:       10px;
+  --cs-pad-card:       16px;
+  --cs-gap-media:      16px;
+  --cs-gap-stack:      12px;
+  --cs-gap-controls:   10px;
+  --cs-space-header:   32px;
   --cs-border-w:       1px;
   --cs-border-w-strong:2px;
 
@@ -247,25 +273,46 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
 }
 
 /*
-  Arithmetic check, 376px column (the 800–1199px plateau):
-  card     = (376 − 8) / 1.3               ≈ 283px
-  interior = 283 − (2 × 12 padding)          = 259px
-  content  = 259 − 84 media − 12 gap-media   = 163px
-  select   = 163 − 8 gap-controls − 56 ADD  ≈ 99px
-  → 1.3 cards laid out in full, plus a visible peek of the next one.
+  Arithmetic check, 656px column (the ≥1440px plateau, §2, --cs-per-view: 1.3):
+  card     = min(420, (656 − 10) / 1.3 ≈ 497)  = 420px  (clamp cap engages)
+  interior = 420 − (2 × 16 padding)              = 388px
+  content  = 388 − 100 media − 16 gap-media      = 272px
+  select   = 272 − 10 gap-controls − 80 ADD      = 182px
+  → close to the comp's own select ÷ card proportion (the comp read ~190px), plus a visible peek
+    of the next card: 656 / (420 + 10) ≈ 1.53 cards laid out.
 */
 
-@media screen and (max-width: 989px) {
+@media screen and (max-width: 1199px) {
   .cross-sell {
-    --cs-add-min-w: 52px;
+    --cs-fs-heading: 16px; /* 1rem */
+    --cs-fs-title:   15px; /* 0.9375rem */
+    --cs-fs-price:   13px; /* 0.8125rem */
+    --cs-fs-label:   11px; /* 0.6875rem */
+    --cs-card-w:     clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px);
+    --cs-media-w:    84px;
+    --cs-control-h:  48px;
+    --cs-add-min-w:  72px;
+    --cs-pad-card:   12px;
+    --cs-gap-media:  12px;
+    --cs-gap-stack:  8px;
+    --cs-space-header: 24px;
   }
 }
 
+/*
+  Arithmetic check, 311px column (the 750px viewport floor — the controls-row dead zone, §6):
+  card      = clamp(248, (311 − 10) / 1.3 ≈ 232, 400) = 248px  (clamp floor engages)
+  interior  = 248 − (2 × 12 padding)                    = 224px
+  container = 224 − 84 media − 12 gap-media             = 128px  ← .cross-sell-card__body's width
+  A row layout here would give the select only 128 − 10 − 72 = 46px, illegible. 128px is below
+  the container query's 200px threshold, so this card stacks instead: select and ADD both get
+  the full 128px, well clear of the ~110px legible floor.
+*/
+
 @media screen and (max-width: 749px) {
   .cross-sell {
-    --cs-card-w:    clamp(232px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px);
+    --cs-card-w:    clamp(240px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px);
     --cs-media-w:   76px;
-    --cs-control-h: 40px;
     --cs-gap-media: 10px;
   }
 }
@@ -273,13 +320,26 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
 @media (prefers-reduced-motion: reduce) {
   .cross-sell { --cs-dur: 0ms; --cs-dur-slow: 0ms; }
 }
+
+/* Controls-row container query — derivation in §6. */
+.cross-sell-card__body {
+  container-type: inline-size;
+  container-name: cross-sell-card;
+}
+
+@container cross-sell-card (max-width: 200px) {
+  .cross-sell-card__controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
 ```
 
 ---
 
 ## 11 · Open questions for the client
 
-Question 1 from the original read (column-width vs. full content width) is answered — it's column-width, fixed by the theme's own product-information grid, not a setting any store chooses. See §2 for how it was measured.
+Question 1 from the original read (column-width vs. full content width) is settled in the sense that matters for implementation: it's always column-width, never the full page width, whatever the section's settings. The *exact* pixel value, though, is not a theme constant — it's a direct function of merchant-controlled section settings (`content_width`, `equal_columns`; see §2, now on its second correction). That's precisely why §4 and §5 scale per breakpoint from real arithmetic instead of hard-coding one column width.
 
 1. What is the **enabled** state of the `ADD` button? (Assumption: solid black fill, white label.)
 2. Which **brand fonts** are licensed for web? The mono is doing a lot of work here — a generic fallback loses most of the character.

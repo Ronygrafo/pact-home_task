@@ -69,6 +69,14 @@
   endif
 
   assign card_image = variant.featured_media.preview_image | default: product.featured_image
+
+  # Mirrors snippets/add-to-cart-button.liquid:14-17: the ADD button's fly-to-cart animation
+  # source image, kept in sync with the currently selected variant by assets/cross-sell.js's
+  # #syncOptionSelection when a companion has a size/option control.
+  assign product_variant_media = variant.featured_media.preview_image | image_url: width: 100
+  if variant.featured_media.preview_image == blank
+    assign product_variant_media = product.featured_media.preview_image | image_url: width: 100
+  endif
 %}
 
 <product-card
@@ -197,31 +205,61 @@
                 </option>
                 {% if choice_mode == 'option' %}
                   {% for option_value in product.options_with_values.first.values %}
-                    <option
-                      value="{{ option_value | escape }}"
-                      data-variant-id="{{ option_value.variant.id }}"
-                      data-available="{{ option_value.variant.available }}"
-                      data-quantity-min="{% if option_value.variant.quantity_rule.min %}{{ option_value.variant.quantity_rule.min }}{% else %}1{% endif %}"
-                      data-variant-media="{{ option_value.variant.featured_media.preview_image | image_url: width: 100 }}"
-                      {% unless option_value.variant.available %}
-                        disabled
-                      {% endunless %}
-                    >
-                      {%- if option_value.variant.available == false -%}
-                        {{ option_value | escape }} - {{ 'content.unavailable' | t }}
-                      {%- else -%}
-                        {{ option_value | escape }}
-                      {%- endif -%}
-                    </option>
+                    {%- liquid
+                      # image_url errors on nil input (the error prints inline into the attribute),
+                      # so the variant's own media is only piped through it when present; otherwise
+                      # falls back to the product's media, mirroring the same two-tier fallback used
+                      # for the ADD button's fly-to-cart source at the top of this file.
+                      assign option_variant_media = ''
+                      if option_value.variant.featured_media.preview_image != blank
+                        assign option_variant_media = option_value.variant.featured_media.preview_image | image_url: width: 100
+                      elsif product.featured_media.preview_image != blank
+                        assign option_variant_media = product.featured_media.preview_image | image_url: width: 100
+                      endif
+                    -%}
+                    {%- comment -%}
+                      Skips option values whose combination no longer resolves to a real variant
+                      (possible on products with unpurchased option combinations, e.g. a variant
+                      deleted after going unavailable): there's nothing to select or add, so no
+                      <option> is worth rendering — a trap that always disables ADD otherwise.
+                    {%- endcomment -%}
+                    {%- if option_value.variant -%}
+                      <option
+                        value="{{ option_value | escape }}"
+                        data-variant-id="{{ option_value.variant.id }}"
+                        data-available="{{ option_value.variant.available }}"
+                        data-quantity-min="{% if option_value.variant.quantity_rule.min %}{{ option_value.variant.quantity_rule.min }}{% else %}1{% endif %}"
+                        data-variant-media="{{ option_variant_media }}"
+                        {% unless option_value.variant.available %}
+                          disabled
+                        {% endunless %}
+                      >
+                        {%- if option_value.variant.available == false -%}
+                          {{ option_value | escape }} - {{ 'content.unavailable' | t }}
+                        {%- else -%}
+                          {{ option_value | escape }}
+                        {%- endif -%}
+                      </option>
+                    {%- endif -%}
                   {% endfor %}
                 {% else %}
                   {% for product_variant in product.variants %}
+                    {%- liquid
+                      # Same nil guard as the option-mode branch above: a variant without its own
+                      # media falls back to the product's, and image_url never runs on a nil input.
+                      assign card_variant_media = ''
+                      if product_variant.featured_media.preview_image != blank
+                        assign card_variant_media = product_variant.featured_media.preview_image | image_url: width: 100
+                      elsif product.featured_media.preview_image != blank
+                        assign card_variant_media = product.featured_media.preview_image | image_url: width: 100
+                      endif
+                    -%}
                     <option
                       value="{{ product_variant.title | escape }}"
                       data-variant-id="{{ product_variant.id }}"
                       data-available="{{ product_variant.available }}"
                       data-quantity-min="{% if product_variant.quantity_rule.min %}{{ product_variant.quantity_rule.min }}{% else %}1{% endif %}"
-                      data-variant-media="{{ product_variant.featured_media.preview_image | image_url: width: 100 }}"
+                      data-variant-media="{{ card_variant_media }}"
                       {% unless product_variant.available %}
                         disabled
                       {% endunless %}
@@ -236,12 +274,35 @@
                 {% endif %}
               </select>
             {% endif %}
-            {% render 'add-to-cart-button',
-              class: 'cross-sell-card__add',
-              can_add_to_cart: can_add_to_cart,
-              add_to_cart_text: add_to_cart_text,
-              product: product
-            %}
+            <add-to-cart-component
+              ref="addToCartButtonContainer"
+              data-product-variant-media="{{ product_variant_media }}"
+              data-add-to-cart-animation="{{ settings.add_to_cart_animation }}"
+            >
+              <button
+                type="submit"
+                name="add"
+                ref="addToCartButton"
+                on:click="/handleClick"
+                class="button cross-sell-card__add"
+                {% unless can_add_to_cart %}
+                  disabled
+                {% endunless %}
+              >
+                <span class="cross-sell-card__add-label">{{- add_to_cart_text -}}</span>
+                {% comment %}
+                  assets/product-form.js:533 looks for a `.add-to-cart-text--added` element on the
+                  clicked button to source the accessibility live-region announcement text. No
+                  stock Horizon snippet ever emits that class, so the theme always falls back to
+                  the generic Theme.translations.added there. This span closes that gap: the real
+                  localized "Added" string now reaches the announcement, not just the visible label.
+                {% endcomment %}
+                <span
+                  class="cross-sell-card__add-label cross-sell-card__add-label--added add-to-cart-text--added"
+                  aria-hidden="true"
+                >{{- 'actions.added' | t -}}</span>
+              </button>
+            </add-to-cart-component>
           </div>
         {%- endform -%}
       </product-form-component>

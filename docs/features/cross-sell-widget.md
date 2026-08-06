@@ -1,6 +1,6 @@
 # Cross-sell widget — "Pairs With"
 
-> **Status: in development.** Sections below are marked `Planned` until the corresponding code lands. Implementation plan: [../plans/cross-sell-widget.md](../plans/cross-sell-widget.md). Visual spec: [../design-tokens.md](../design-tokens.md).
+> **Status: built, pending browser QA.** The block, card snippet and JS component are implemented and wired into the product template; `shopify theme check` runs clean (348 files, 0 offenses). What's still open is a full browser QA pass — cart drawer, the isolation race condition, keyboard, responsive, and two variant-mode edge cases the current catalog can't exercise — plus the side-by-side comparison against the reference mockup. See the table below and [../plans/01-delivery-checklist.md](../plans/01-delivery-checklist.md#7--definition-of-done--qa-matrix). Implementation plan: [../plans/cross-sell-widget.md](../plans/cross-sell-widget.md). Visual spec: [../design-tokens.md](../design-tokens.md).
 
 ---
 
@@ -51,13 +51,13 @@ It doesn't bundle, discount, or automate. It shows what the store team chose, in
 
 | Area | State |
 |---|---|
-| Metafield definition | Planned |
-| Block + card markup | Planned |
-| Design tokens applied | Planned |
-| Carousel behaviour | Planned |
-| Add to cart | Planned |
-| Translations | Planned |
-| QA matrix | Planned |
+| Metafield definition | Done |
+| Block + card markup | Done |
+| Design tokens applied | Done — not yet compared side-by-side with the reference mockup |
+| Carousel behaviour | Done — implemented; interactive scroll and arrow-toggle not yet exercised in a browser |
+| Add to cart | Done — wired to the theme's own `<product-form-component>`; cart drawer refresh not yet watched happen in a browser |
+| Translations | Done — 5 new schema keys, translated across all 20 locale files |
+| QA matrix | Server-side checks done (see the plan's [QA matrix](../plans/01-delivery-checklist.md#7--definition-of-done--qa-matrix)); browser QA still open |
 
 ### Files
 
@@ -71,6 +71,8 @@ It doesn't bundle, discount, or automate. It shows what the store team chose, in
 | `templates/product.json` | Merchant configuration — positions the block as the sibling directly after Buy buttons. Not a Horizon source file; changed by the theme editor, not by hand. |
 
 **No Horizon source file is modified.** The only edits to pre-existing source files are additive keys in the two locale files. `templates/product.json` also changes, but as merchant configuration, not theme code — see the plan's Files section for why that distinction matters. If a change to a base theme file ever becomes unavoidable, it must be raised explicitly — "zero Horizon source files modified" is a deliberate upgrade-safety claim in the deliverable write-up.
+
+The block's own schema sets `"tag": null` — 85 of Horizon's 96 blocks do the same. Without it, Shopify wraps the block's output in a generated `<div>` that stays in the DOM even when the block prints nothing, which is exactly the empty container the brief rules out.
 
 ### Data source
 
@@ -100,16 +102,19 @@ Cards are server-rendered in Liquid. There is no client-side product fetch, and 
 | id | Type | Default |
 |---|---|---|
 | `heading` | text | `Pairs with` |
-| `products_per_view` | range (1–2, step 0.25) | 1.25 |
+| `products_per_view` | range (1–2, step 0.1) | 1.3 |
 | `show_price` | checkbox | true |
 | `max_products` | range 2–8 | 8 |
+
+`products_per_view`'s step is `0.1`, not the originally planned `0.25`: `theme-check` rejects `range` steps that aren't multiples of `0.1`. `1.3` is the closest value to the theoretical ~1.25 target, not the target itself — the full arithmetic is in [../design-tokens.md](../design-tokens.md).
 
 Settings that affect layout must resolve to CSS custom properties with clamped ranges, never to raw values that could break the grid.
 
 ### JavaScript contract
 
-Cards don't post to the cart themselves. Each one renders the theme's own `<product-form-component>`, following the exact pattern in `snippets/quick-add.liquid:104-126` — the same hidden `id`/`quantity` inputs, the same `{% form 'product' %}`, the same `add-to-cart-button` render. Reusing that markup means the optimistic `CartLinesUpdateEvent`, the 422 error handling, the live region, the `data-added` state, the fly-to-cart animation and the cart drawer's auto-open all come from `assets/product-form.js` for free — none of it is reimplemented here.
+Cards don't post to the cart themselves. Each one renders the theme's own `<product-form-component>`, following the exact pattern in `snippets/quick-add.liquid:104-126` — the same hidden `id`/`quantity` inputs, the same `{% form 'product' %}`. Reusing that wiring means the optimistic `CartLinesUpdateEvent`, the 422 error handling, the live region, the `data-added` state, the fly-to-cart animation and the cart drawer's auto-open all come from `assets/product-form.js` for free — none of it is reimplemented here.
 
+- The card writes its own `<button>` inside `<add-to-cart-component>` rather than `{% render 'add-to-cart-button' %}` — same contract (`ref="addToCartButtonContainer"`, `ref="addToCartButton"`, `type="submit"`, `name="add"`, `on:click="/handleClick"`, `data-product-variant-media`, `data-add-to-cart-animation`), custom markup. Two reasons: the shared snippet anchors its "added" state to the `.add-to-cart-button` class and ships a cart icon plus a checkmark-burst animation that don't belong in a monochrome design; and its own markup gives the button a `.add-to-cart-text--added` span, a class `assets/product-form.js:533` already looks for to source the accessibility live-region announcement text but that no stock Horizon snippet ever emits — the theme shipped that hook without a caller, and this widget is the first thing in the codebase that uses it.
 - `properties[_source] = pdp-cross-sell` is a plain `<input type="hidden">` inside the `{% form 'product' %}`. It reaches the server purely because it's part of `new FormData(form)` (`assets/product-form.js:420`) — no JS reads or writes it.
 - `assets/cross-sell.js` defines `<cross-sell-component>` and owns exactly two things: the carousel arrows' disabled state at each scroll end, and keeping each card's variant `<select>` in sync with its hidden `input[name="id"]` and its ADD button's disabled state. **It makes no fetch call and dispatches no cart event of its own.**
 - Each card's root is a `<product-card data-no-navigation>`. This is the least obvious decision in the widget, so it's worth spelling out: `assets/product-form.js:236` has every `<product-form-component>` listen for the `productSelect` event on `this.closest('.shopify-section, dialog, product-card')`. When that event fires, `#onProductSelect` (`:774-785`) sets `#variantChangeInProgress = true` *before* the guard that would otherwise bail out on a mismatched `productId` (`:796-798`) — and separately, `#getVariantPicker()` (`:1096-1107`) walks up to the nearest `product-card` / `dialog` / `.shopify-section` and, if that container holds exactly one `variant-picker`, returns it without checking whose product it belongs to. Without a `product-card` boundary around each card, a shopper who changes the main product's size and then clicks ADD inside a cross-sell card — inside that same window — would resolve the *main* product's variant picker instead of the card's own, and the queue-drain path (`#processBatchAddToCart`) POSTs a bare `{ items, sections }` JSON body with no `properties` at all, so `_source` would silently vanish too. Wrapping each card in `<product-card>` makes `closest(...)` resolve to the card itself and `#getVariantPicker()` return `null` — this is the same `product-card > product-form-component` nesting the theme already uses on collection grids, not a new pattern. The contract that makes it safe to rely on: `ProductCard.requiredRefs = ['productCardLink']` (`assets/product-card.js:108`), which throws if that ref isn't an `<a>` (`:195-196`) — so every card needs a real link even though it should never navigate — and `data-no-navigation` (`assets/product-card.js:559`) is what suppresses the click-to-navigate behaviour on the empty space around the card.
@@ -139,15 +144,21 @@ Block-scoped CSS lives in a `{% stylesheet %}` tag inside `blocks/cross-sell.liq
 
 Token values come from [../design-tokens.md](../design-tokens.md), which is the visual source of truth. Non-negotiables from that spec: zero border radius everywhere, monospace for UI text (heading, option label, ADD) and the theme body face for content text, monochrome only, and the 2px active border implemented as an inset box-shadow so it never shifts layout.
 
+Tokens scale per breakpoint rather than assuming one fixed card-column width, because that width isn't a theme constant — it's a direct function of section settings the merchant controls (`content_width`, `equal_columns` on `product-information`). On this demo store (`content-full-width` + `equal_columns: true`) the details column runs from 311px at 750px up to 656px at 1440px+. The `{% stylesheet %}` sets its widest tier (≥1200px) as the base and two `@media` blocks override downward for narrower columns; the full derivation is in [../design-tokens.md](../design-tokens.md)§2.
+
+The `[select | ADD]` controls row collapses to a stacked layout via a **container query** (`@container cross-sell-card (max-width: 200px)`), not a media query — the card's own inline size is what decides whether the row still fits, and the card also narrows independently of the viewport whenever the merchant raises `products_per_view`. A viewport breakpoint can't see that; the container query can.
+
 Motion is transition on `color` / `background-color` / `box-shadow` only, wrapped in `prefers-reduced-motion`.
 
 ### Translations
 
 Every visible string resolves through `| t`. Schema labels use `t:` keys.
 
-No new storefront-facing keys are needed — the widget reuses keys the theme already ships: `actions.add`, `actions.choose`, `products.product.sold_out`, `content.unavailable`, `content.variant`, `accessibility.slideshow_previous`, `accessibility.slideshow_next`. The only additions are 5 schema keys in `locales/en.default.schema.json`: `names.cross_sell`, `settings.cards_per_view`, `settings.show_price`, `content.cross_sell_source`, `text_defaults.pairs_with`.
+No new storefront-facing keys are needed — the widget reuses keys the theme already ships: `actions.add`, `actions.added`, `actions.choose`, `products.product.sold_out`, `content.unavailable`, `content.variant`, `accessibility.slideshow_previous`, `accessibility.slideshow_next`. The only additions are 5 schema keys in `locales/en.default.schema.json`: `names.cross_sell`, `settings.cards_per_view`, `settings.show_price`, `content.cross_sell_source`, `text_defaults.pairs_with`.
 
 Both locale files begin with an auto-generated banner comment and are JSONC, not strict JSON — append keys, never restructure, and never reformat the file.
+
+All 5 schema keys are translated across the theme's other 19 locale files — no `[TRANSLATE]` placeholders remain for this widget. `locales/en.default.json` carries no new keys at all; the widget only reuses existing storefront strings.
 
 ### Accessibility
 

@@ -31,7 +31,6 @@
     type="module"
   ></script>
 
-  {% render 'add-to-cart-button-styles' %}
   {% render 'fly-to-cart-styles' %}
 
   {% style %}
@@ -251,27 +250,36 @@
     --cs-border-strong: #111;
     --cs-arrow-idle: #9e9e9e;
 
+    /*
+      Token scale, ≥1200px tier. This block is the widest-column tier, not a mobile-first base —
+      the two media queries below it override downward for narrower columns. The column these
+      tokens are calibrated against is NOT a fixed theme width: it's half of
+      --full-page-grid-central-column-width (product-information__grid--half, active because the
+      demo store runs content_width: "content-full-width" + equal_columns: true — see
+      docs/design-tokens.md §2 for the full derivation and why that makes the width
+      merchant-configurable rather than a constant.
+    */
     --cs-font-mono: ui-monospace, 'SF Mono', 'Roboto Mono', 'IBM Plex Mono', Menlo, monospace;
     --cs-font-body: var(--font-body--family, 'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif);
-    --cs-fs-heading: 0.8125rem;
-    --cs-fs-title: 0.8125rem;
-    --cs-fs-price: 0.75rem;
-    --cs-fs-label: 0.6875rem;
+    --cs-fs-heading: 1.125rem; /* 18px */
+    --cs-fs-title: 1rem; /* 16px */
+    --cs-fs-price: 0.875rem; /* 14px */
+    --cs-fs-label: 0.75rem; /* 12px */
     --cs-track-wide: 0.10em;
     --cs-track-label: 0.08em;
 
     --cs-radius: 0;
     --cs-per-view: 1.3;
-    --cs-gap-card: 8px;
-    --cs-card-w: clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px);
-    --cs-media-w: 84px;
-    --cs-control-h: 44px;
-    --cs-add-min-w: 56px;
-    --cs-pad-card: 12px;
-    --cs-gap-media: 12px;
-    --cs-gap-stack: 6px;
-    --cs-gap-controls: 8px;
-    --cs-space-header: 16px;
+    --cs-gap-card: 10px;
+    --cs-card-w: clamp(300px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 420px);
+    --cs-media-w: 100px;
+    --cs-control-h: 56px;
+    --cs-add-min-w: 80px;
+    --cs-pad-card: 16px;
+    --cs-gap-media: 16px;
+    --cs-gap-stack: 12px;
+    --cs-gap-controls: 10px;
+    --cs-space-header: 32px;
     --cs-border-w: 1px;
     --cs-border-w-strong: 2px;
 
@@ -334,6 +342,11 @@
   .cross-sell__arrow svg {
     inline-size: 20px;
     block-size: 20px;
+  }
+
+  .cross-sell__arrow:focus-visible {
+    outline: var(--cs-border-w-strong) solid var(--cs-border-strong);
+    outline-offset: 2px;
   }
 
   .cross-sell__arrow[aria-disabled='true'] {
@@ -408,6 +421,11 @@
     flex-direction: column;
     gap: var(--cs-gap-stack);
     min-width: 0;
+    /* Query container for the controls-row container query below. This box's own inline size is
+       what decides whether [SELECT | ADD] still fits — not the viewport — because the merchant
+       raising products_per_view narrows this same box independently of any breakpoint. */
+    container-type: inline-size;
+    container-name: cross-sell-card;
   }
 
   .cross-sell-card__title {
@@ -457,6 +475,18 @@
     display: flex;
     align-items: center;
     gap: var(--cs-gap-controls);
+  }
+
+  /* Below this container width, [select | ADD] no longer fits without the select shrinking past
+     a legible floor. Threshold derivation (docs/design-tokens.md §6): a ~110px legible select
+     minimum + --cs-gap-controls (10px at every breakpoint) + the widest --cs-add-min-w in the
+     scale (80px, the >=1200px tier) = 200px. A media query can't see this: the card also narrows
+     when the merchant raises products_per_view, independent of the viewport. */
+  @container cross-sell-card (max-width: 200px) {
+    .cross-sell-card__controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
   }
 
   /* Select */
@@ -509,14 +539,15 @@
 
   /* ADD button
 
-     snippets/add-to-cart-button.liquid renders the button's class attribute as
-     "button" plus whatever `class` param it's given, and this block only ever passes
-     `cross-sell-card__add` — never `add-to-cart-button` — so the rules in
-     add-to-cart-button-styles.liquid never actually match this button today.
-     The overrides below are prefixed with `.cross-sell` (specificity 0,2,0) rather than
-     scoped to a bare `.cross-sell-card__add` so they win deterministically over `.button`
-     and `.button:disabled` (assets/base.css) regardless of stylesheet source order, and
-     so they keep winning if a future edit ever adds the `add-to-cart-button` class here. */
+     snippets/cross-sell-card.liquid writes this button's markup directly instead of rendering
+     snippets/add-to-cart-button.liquid, and it never carries the theme's `add-to-cart-button`
+     class — so none of add-to-cart-button-styles.liquid's rules (including the checkmark-burst
+     success animation) ever apply here. This widget owns its own success state instead: the
+     theme's own AddToCartComponent (assets/product-form.js) still sets `data-added="true"` on
+     this button for 800ms after a successful add, and the rules below react to that attribute by
+     swapping which of the two `.cross-sell-card__add-label` spans is visible. Both labels share
+     one grid cell (`grid-area: 1 / 1`), so the track sizes to the wider of the two and the swap
+     never changes the button's width. */
 
   .cross-sell .cross-sell-card__add {
     display: grid;
@@ -525,12 +556,6 @@
     block-size: var(--cs-control-h);
     padding-inline: 12px;
     margin: 0;
-    /* The theme's checkmark-burst success animation is absolutely positioned against
-       the nearest positioned ancestor and needs clipping; assets/add-to-cart-button-styles.liquid
-       normally supplies both via an `[id^='BuyButtons-ProductSubmitButton-']` selector, which
-       this button never gets because no `id` is passed to the snippet. */
-    position: relative;
-    overflow: hidden;
     border-radius: var(--cs-radius);
     box-shadow: none;
     font-family: var(--cs-font-mono);
@@ -549,9 +574,13 @@
     background-color: #000;
   }
 
+  .cross-sell .cross-sell-card__add:focus-visible {
+    outline: var(--cs-border-w-strong) solid var(--cs-border-strong);
+    outline-offset: 2px;
+  }
+
   .cross-sell .cross-sell-card__add:active {
-    /* Neutralizes .add-to-cart-button's `:active { scale: 0.99; translate: 0 1px; }`.
-       `none` (not `1` / `0`) is used deliberately: any other value for scale/translate
+    /* `none` (not `1` / `0`) is used deliberately: any other value for scale/translate
        creates a stacking context, which this widget must never do. */
     scale: none;
     translate: none;
@@ -565,8 +594,23 @@
     cursor: not-allowed;
   }
 
-  .cross-sell .cross-sell-card__add .add-to-cart-icon {
-    display: none;
+  .cross-sell .cross-sell-card__add-label {
+    grid-area: 1 / 1;
+  }
+
+  .cross-sell .cross-sell-card__add-label--added {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .cross-sell .cross-sell-card__add[data-added='true'] .cross-sell-card__add-label {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .cross-sell .cross-sell-card__add[data-added='true'] .cross-sell-card__add-label--added {
+    visibility: visible;
+    opacity: 1;
   }
 
   .cross-sell .cross-sell-card__add--link,
@@ -582,19 +626,31 @@
     min-width: 0;
   }
 
-  @media screen and (max-width: 989px) {
+  /* 750–1199px tier: the demo store's product-information__grid--half column narrows to
+     311–536px usable here (docs/design-tokens.md §2). Aligned to the theme's own 1200px
+     breakpoint (snippets/product-information-content.liquid:297), not the old sidebar's 990px. */
+  @media screen and (max-width: 1199px) {
     .cross-sell {
-      --cs-add-min-w: 52px;
+      --cs-fs-heading: 1rem; /* 16px */
+      --cs-fs-title: 0.9375rem; /* 15px */
+      --cs-fs-price: 0.8125rem; /* 13px */
+      --cs-fs-label: 0.6875rem; /* 11px */
+      --cs-card-w: clamp(248px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 400px);
+      --cs-media-w: 84px;
+      --cs-control-h: 48px;
+      --cs-add-min-w: 72px;
+      --cs-pad-card: 12px;
+      --cs-gap-media: 12px;
+      --cs-gap-stack: 8px;
+      --cs-space-header: 24px;
     }
   }
 
   @media screen and (max-width: 749px) {
     .cross-sell {
-      --cs-card-w: clamp(232px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px);
+      --cs-card-w: clamp(240px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px);
       --cs-media-w: 76px;
-      --cs-control-h: 40px;
       --cs-gap-media: 10px;
-      --cs-space-header: 12px;
     }
 
     .cross-sell__controls {
