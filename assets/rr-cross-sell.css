@@ -54,7 +54,7 @@
   --cs-fs-title: 1rem; /* 16px */
   --cs-fs-price: 0.875rem; /* 14px */
   --cs-fs-label: 0.75rem; /* 12px */
-  --cs-track-wide: 0.10em;
+  --cs-track-wide: 0.05em;
   --cs-track-label: 0.08em;
 
   --cs-radius: 0;
@@ -105,7 +105,7 @@
   margin: 0;
   font-family: var(--font-heading--family);
   font-size: var(--cs-fs-heading);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: var(--cs-track-wide);
   text-transform: uppercase;
   color: var(--cs-ink);
