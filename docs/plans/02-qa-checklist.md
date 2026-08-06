@@ -65,7 +65,7 @@ Run A2 first. It's the only one of these four that could force a structural chan
 
 ## C · Visual, against `../design-mockup.png`
 
-- [ ] **C1** Side by side at 1440px: proportions, type weight, monospace on the heading, the selector label and ADD.
+- [ ] **C1** Side by side at 1440px: proportions, type weight, and the dual-typeface contrast — heading, selector label and ADD render in the theme's heading font (`var(--font-heading--family)`, `settings.type_heading_font` — `mono` on this demo store, hence the monospace look), product title and price render in the theme's body font (`var(--font-body--family)`, `settings.type_body_font`).
 - [ ] **C2** ~1.5 cards visible, with the next one visibly cut off.
 - [ ] **C3** Zero border radius everywhere: card, select, button.
 - [ ] **C4** The image sits directly on the card's grey surface — no white tile behind it.

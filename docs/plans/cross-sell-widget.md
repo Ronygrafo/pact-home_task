@@ -62,7 +62,7 @@ Every add carries a line item property `_source: pdp-cross-sell`, as a plain `<i
 
 Each card's root is wrapped in `<product-card data-no-navigation>`. This isn't decorative: `assets/product-form.js:236` has every `<product-form-component>` subscribe to the `productSelect` event on `this.closest('.shopify-section, dialog, product-card')`, and `#getVariantPicker()` (`:1096-1107`) falls back to the single `variant-picker` inside that same container without checking which product it belongs to. Without a `product-card` boundary around each card, changing the main product's size and clicking a cross-sell card's ADD inside that same window could resolve the *main* product's variant picker instead of the card's own — see §9 Risks for the failure path this closes off. `<product-card>` requires a real `<a>` ref (`assets/product-card.js:108`, throws otherwise at `:195-196`); `data-no-navigation` (`:559`) is what stops the card from also acting as a click-to-navigate link on its empty space.
 
-*Rejected:* a bespoke `fetch` to `Theme.routes.cart_add_url` from `assets/cross-sell.js` — the original approach in this plan, before the theme's event wiring was read closely. It would mean reimplementing error handling, the live region and the drawer refresh that `product-form-component` already provides, and it doesn't even sidestep the event-bubbling risk above: a hand-rolled listener on the same `.shopify-section` would hit the identical cross-talk problem, just without the theme's own guard rails.
+*Rejected:* a bespoke `fetch` to `Theme.routes.cart_add_url` from `assets/rr-cross-sell.js` — the original approach in this plan, before the theme's event wiring was read closely. It would mean reimplementing error handling, the live region and the drawer refresh that `product-form-component` already provides, and it doesn't even sidestep the event-bubbling risk above: a hand-rolled listener on the same `.shopify-section` would hit the identical cross-talk problem, just without the theme's own guard rails.
 
 ## 4. Files
 
@@ -70,9 +70,9 @@ All new, with one exception. The only edit to an existing *source* file is addit
 
 | Path | Purpose |
 |---|---|
-| `blocks/cross-sell.liquid` | Public theme block: schema, heading, arrows, carousel container, scoped `{% stylesheet %}` |
-| `snippets/cross-sell-card.liquid` | One product card: media, title, price, variant handling, `<product-form-component>` |
-| `assets/cross-sell.js` | `<cross-sell-component>` — arrow state, variant-select ↔ hidden-input ↔ ADD sync, no fetch |
+| `blocks/rr-cross-sell.liquid` | Public theme block: schema, heading, arrows, carousel container, scoped `{% stylesheet %}` |
+| `snippets/rr-cross-sell-card.liquid` | One product card: media, title, price, variant handling, `<product-form-component>` |
+| `assets/rr-cross-sell.js` | `<cross-sell-component>` — arrow state, variant-select ↔ hidden-input ↔ ADD sync, no fetch |
 | `locales/en.default.schema.json` | Theme editor labels under `names` / `settings` / `content` / `text_defaults` |
 
 `locales/en.default.json` — **no changes.** Every storefront string the widget needs (`actions.add`, `actions.choose`, `products.product.sold_out`, `content.unavailable`, `content.variant`, `accessibility.slideshow_previous`, `accessibility.slideshow_next`) already exists in the theme.
@@ -108,9 +108,9 @@ No setting may be able to break the layout. Anything that could is a CSS custom 
 |---|---|---|
 | **0 · Docs aligned** | This plan, the feature doc and the design tokens reflect the closed architecture decisions | A reviewer reading the three docs finds no contradiction with the code that follows |
 | **1 · Store prep** | Metafield definition, demo catalog (1 hero + 6 companions: one single-variant, one sold-out variant, one no-image, one very long title) | A product page has real assignments to render |
-| **2 · Block structure** | `blocks/cross-sell.liquid` schema, heading, arrows shell, carousel container; locale keys added | Cards appear below Add to Cart with correct data, unstyled |
-| **3 · Card snippet** | `snippets/cross-sell-card.liquid` — media, title, price, variant handling, `<product-form-component>` | Every variant mode renders correctly, including the `link` fallback |
-| **4 · `cross-sell.js`** | `<cross-sell-component>` — arrow disabled-state, select ↔ hidden-input ↔ ADD sync | Changing the select enables ADD; no fetch code present |
+| **2 · Block structure** | `blocks/rr-cross-sell.liquid` schema, heading, arrows shell, carousel container; locale keys added | Cards appear below Add to Cart with correct data, unstyled |
+| **3 · Card snippet** | `snippets/rr-cross-sell-card.liquid` — media, title, price, variant handling, `<product-form-component>` | Every variant mode renders correctly, including the `link` fallback |
+| **4 · `rr-cross-sell.js`** | `<cross-sell-component>` — arrow disabled-state, select ↔ hidden-input ↔ ADD sync | Changing the select enables ADD; no fetch code present |
 | **5 · CSS** | Token sheet applied from `../design-tokens.md`, all resting and interaction states, responsive breakpoints | Side-by-side with the reference is convincing at 375 / 768 / 990 / 1440px |
 | **6 · Hardening** | Edge cases (§8), a11y pass, bfcache/`pageshow` restoration | QA matrix green end to end |
 | **7 · `shopify theme check`** | Clean run, no warnings introduced | Lint passes on the full diff |
@@ -144,7 +144,7 @@ Found by reading the theme before writing any code, not by testing after the fac
 - **The column is `sticky_details_desktop: true`** (`templates/product.json`), so the product-info column stays pinned while media scrolls. A tall widget pushes real content off the bottom of that pinned column — the whole reason the card is horizontal (~180px tall) rather than the theme's usual vertical product card.
 - **The mobile sticky Add to Cart bar competes for the same space.** The widget must not create its own stacking context that could conflict with it, and needs `scroll-margin-block-end` so a focus jump or deep link doesn't land the widget underneath that bar.
 - **`min-width: 0` is mandatory, not a nice-to-have** — see `../design-tokens.md` §6. Skip it anywhere between the block root and the scroll-snap track and the `overflow-x` scroller forces the whole PDP grid wider than its own column.
-- **A known upstream quirk, used as an argument rather than just noted.** `assets/product-form.js:428-436` appends to `formData` for `sections` *inside* the `cartItemsComponents.forEach` loop rather than after it — harmless today with the theme's single cart-items-component, but exactly the kind of subtlety that argues against writing a second, parallel cart request in `assets/cross-sell.js`. Reusing `product-form-component` means this quirk — and any future fix to it — is inherited automatically instead of needing to be tracked and re-applied in a hand-rolled path.
+- **A known upstream quirk, used as an argument rather than just noted.** `assets/product-form.js:428-436` appends to `formData` for `sections` *inside* the `cartItemsComponents.forEach` loop rather than after it — harmless today with the theme's single cart-items-component, but exactly the kind of subtlety that argues against writing a second, parallel cart request in `assets/rr-cross-sell.js`. Reusing `product-form-component` means this quirk — and any future fix to it — is inherited automatically instead of needing to be tracked and re-applied in a hand-rolled path.
 
 ## 10. Out of scope
 
@@ -159,3 +159,11 @@ Carried from the design analysis; answers get logged in the write-up as stated a
 3. Is the whole companion catalog shot on transparent/matching backgrounds, or is a neutral tile fallback needed?
 4. After adding, should the cart drawer open or should the shopper stay on the PDP with a subtle confirmation? Recommendation: stay — opening the drawer interrupts the primary purchase.
 5. Should attribution feed GA4 / a CDP in addition to the line item property?
+
+## 12. Post-implementation refactor
+
+This plan describes the widget as it was designed and first built. After it shipped, a follow-up pass changed three things — none of them touch the four requirements or the architecture decisions above, all of them are naming, packaging or styling-origin changes. Recorded here rather than folded back into §4 above, so this plan still reads as what was decided *before* the code existed.
+
+1. **Files renamed with an `rr-` prefix.** `blocks/cross-sell.liquid` → `blocks/rr-cross-sell.liquid`, `snippets/cross-sell-card.liquid` → `snippets/rr-cross-sell-card.liquid`, `assets/cross-sell.js` → `assets/rr-cross-sell.js`, and the block `type` in `templates/product.json` from `"cross-sell"` to `"rr-cross-sell"`. Purely an authorship convention — marks the hand-built files as distinct from Horizon's own — and does not touch CSS classes, the `<cross-sell-component>` custom element, the `CrossSellComponent` JS class, locale keys, the metafield, or any id prefix.
+2. **CSS extracted to its own asset**, `assets/rr-cross-sell.css`, loaded via `{{ 'rr-cross-sell.css' | asset_url | stylesheet_tag }}` in both render branches of `blocks/rr-cross-sell.liquid` — the `{% stylesheet %}` mention in the §4 Files table above describes the file as it was first built, not its current form. The `{% style %}` tag emitting `--cs-per-view` from `block.id` stays inline, since it can't live in a static file. This is a deliberate departure from the Horizon convention (52 of 95 blocks use `{% stylesheet %}`): the cost is one extra request for a separately served file; the benefit is CSS that can be edited in isolation without touching the block's Liquid.
+3. **Font tokens dropped in favour of the theme's own.** `--cs-font-mono` and `--cs-font-body` no longer exist. Every usage now reads `var(--font-heading--family)` (was `--cs-font-mono`) or `var(--font-body--family)` (was `--cs-font-body`) directly — both theme custom properties the theme itself sets from `settings.type_heading_font` / `settings.type_body_font`. On this demo store that preserves the comp's dual-typeface contrast (heading font on system/UI text, body font on content text), because `type_heading_font` happens to be `mono`. The widget now inherits the merchant's brand typography instead of shipping its own stack — more portable, one fewer font to license — at the cost of that contrast now depending on how the merchant has those two theme settings configured. See [../design-tokens.md](../design-tokens.md) §4 for the full rationale.

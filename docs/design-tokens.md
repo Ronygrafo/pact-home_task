@@ -84,7 +84,9 @@ The exact fonts can't be identified from a raster crop; these are matched by cla
 | **UI / system** | Grotesque **monospace**, uppercase, wide tracking | ABC Diatype Mono, Söhne Mono, Martian Mono | `ui-monospace, "SF Mono", "Roboto Mono", "IBM Plex Mono", Menlo, monospace` |
 | **Content** | Neutral geometric grotesque — double-storey `a`, single-storey `g`, tall x-height, flagged `1` | Aeonik, Neue Montreal, Söhne, Helvetica Now | `"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif` |
 
-For the prototype, prefer the **theme's existing font settings** for the content face (`{{ settings.type_body_font }}`) so the widget inherits the client's brand, and add only the monospace as a variable. That's one fewer font file loaded and one fewer thing to license.
+**Implemented: both faces come from the theme, not from a widget-owned stack.** `var(--font-heading--family)` covers the UI/system role and `var(--font-body--family)` covers the content role — both theme custom properties (`snippets/theme-styles-variables.liquid:159, 165`), sourced from `settings.type_body_font` / `settings.type_heading_font`. There is no `--cs-font-mono` / `--cs-font-body` token in the CSS; the widget just reads the theme's variables directly. On this demo store `type_heading_font` is `mono` and `type_body_font` is `system_ui`, so the comp's dual-typeface contrast (§1.1) still holds: the heading face lands on the system/UI text (`PAIRS WITH`, the option label, the `<select>`, `ADD`) and the body face lands on the content text (product title, price) — the same split the reference shows, just driven by the theme's own settings rather than a hardcoded stack.
+
+The trade-off worth stating: the widget now inherits the merchant's brand typography instead of shipping its own monospace — more portable, one fewer font file to load or license, but it also means the dual-typeface contrast is only as good as how the merchant has `type_heading_font` / `type_body_font` configured. A store running the same body face for both settings would lose the contrast the reference design relies on; that's an acceptable dependency on theme configuration, not a widget bug.
 
 ### Scale
 
@@ -97,7 +99,7 @@ Sized per breakpoint, not once, because the column itself is (§2). The `750–1
 | `--cs-fs-price` | `14px` (`0.875rem`) / lh 1.2 | `13px` (`0.8125rem`) | 400 | `0` | — | Price (grotesque) |
 | `--cs-fs-label` | `12px` (`0.75rem`) | `11px` (`0.6875rem`) | 500 | `0.08em` | UPPER | `SIZE`, `ADD` (mono) |
 
-Product titles clamp to **2 lines** (`-webkit-line-clamp: 2`) so card heights never diverge.
+Product titles clamp to **2 lines** (`-webkit-line-clamp: 2`) so card heights never run away — cards still size to their own content (1- vs 2-line title, sold-out note or not), so small height differences between cards on the same row are expected, not a bug.
 
 ---
 
@@ -195,7 +197,7 @@ The comp shows two of these; the rest are inferred and should be listed as assum
 
 The **enabled** ADD state is the one meaningful gap in the comp. Inverting to solid black is the reading most consistent with the rest of the system (black is already the "active" signal on the select border).
 
-**Success state, implemented (`snippets/cross-sell-card.liquid`, `blocks/cross-sell.liquid`):** the 800ms duration is not this widget's choice — it's the theme's. `assets/product-form.js` sets `data-added="true"` on the button after a successful add and clears it again 800ms later (`assets/product-form.js:143-160`); this widget only reacts to that attribute, it never sets its own timer. `[data-added='true']` toggles which of the two grid-stacked label spans (§6) is visible via `visibility`/`opacity`, never `display`, so the button's width never jumps mid-animation.
+**Success state, implemented (`snippets/rr-cross-sell-card.liquid`, `blocks/rr-cross-sell.liquid`):** the 800ms duration is not this widget's choice — it's the theme's. `assets/product-form.js` sets `data-added="true"` on the button after a successful add and clears it again 800ms later (`assets/product-form.js:143-160`); this widget only reacts to that attribute, it never sets its own timer. `[data-added='true']` toggles which of the two grid-stacked label spans (§6) is visible via `visibility`/`opacity`, never `display`, so the button's width never jumps mid-animation.
 
 This also closes a small gap in Horizon itself: `assets/product-form.js:533` looks for a `.add-to-cart-text--added` element on the clicked button to source the live-region announcement text, and no stock Horizon snippet ever emits that class — every add-to-cart button in the base theme silently falls back to the generic `Theme.translations.added`. This widget's `ADDED` label carries that exact class, so its announcement reads the real localized string instead of the fallback.
 
@@ -241,8 +243,9 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
   --cs-arrow-idle:      #9e9e9e;
 
   /* Type — ≥1200px tier (536–656px column, §2) */
-  --cs-font-mono:  ui-monospace, "SF Mono", "Roboto Mono", "IBM Plex Mono", Menlo, monospace;
-  --cs-font-body:  var(--font-body--family, "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif);
+  /* No --cs-font-* token: both faces read straight from the theme's own
+     --font-heading--family / --font-body--family (§4) at each usage site,
+     not through a widget-local alias. */
   --cs-fs-heading: 18px; /* 1.125rem */
   --cs-fs-title:   16px; /* 1rem */
   --cs-fs-price:   14px; /* 0.875rem */
@@ -342,6 +345,6 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
 Question 1 from the original read (column-width vs. full content width) is settled in the sense that matters for implementation: it's always column-width, never the full page width, whatever the section's settings. The *exact* pixel value, though, is not a theme constant — it's a direct function of merchant-controlled section settings (`content_width`, `equal_columns`; see §2, now on its second correction). That's precisely why §4 and §5 scale per breakpoint from real arithmetic instead of hard-coding one column width.
 
 1. What is the **enabled** state of the `ADD` button? (Assumption: solid black fill, white label.)
-2. Which **brand fonts** are licensed for web? The mono is doing a lot of work here — a generic fallback loses most of the character.
+2. Which **brand fonts** are licensed for web? The mono is doing a lot of work here — a generic fallback loses most of the character. *Resolved for implementation (§4): rather than pick or license a font for the widget, it inherits `--font-heading--family` / `--font-body--family` from the theme's own settings, so this question no longer blocks the build — it becomes a question of how the merchant has `type_heading_font` / `type_body_font` configured, not one for this widget to answer on its own.*
 3. Product images appear on a transparent/matching background. Is the full cross-sell catalogue shot that way, or do we need a neutral tile fallback for inconsistent imagery?
 4. Should the `SIZE` label be literal, or the product's real option name (Size / Colour / Length)? Building it dynamic is safer; the comp only shows one case.

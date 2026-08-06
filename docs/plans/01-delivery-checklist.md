@@ -5,7 +5,7 @@
 **Deadline:** 3 business days from receipt
 **Goal:** Replace a paid cross-sell app with a custom, theme-native section that is faster, consistent, and demo-ready.
 
-> **Status — widget built.** The "Pairs With" block (`blocks/cross-sell.liquid`, `snippets/cross-sell-card.liquid`, `assets/cross-sell.js`) is implemented and wired into `templates/product.json` as the last block in `_product-details`, right after `buy_buttons_eYQEYi`. `shopify theme check` runs clean — 348 files, 0 offenses. R1–R3 are verified against real HTML from `shopify theme dev` (product `rr-trainer-low`, 7 assigned companions); R4 is implemented against the token sheet but hasn't been compared side-by-side with the reference mockup yet. What's left: a full browser QA pass (§7 — cart drawer, the isolation race condition, keyboard, responsive, and two variant-mode edge cases the current catalog can't exercise), then the three deliverables below. Architecture decisions and their rationale live in [cross-sell-widget.md](cross-sell-widget.md).
+> **Status — widget built.** The "Pairs With" block (`blocks/rr-cross-sell.liquid`, `snippets/rr-cross-sell-card.liquid`, `assets/rr-cross-sell.js`, `assets/rr-cross-sell.css`) is implemented and wired into `templates/product.json` as the last block in `_product-details`, right after `buy_buttons_eYQEYi`. `shopify theme check` runs clean — 348 files, 0 offenses. R1–R3 are verified against real HTML from `shopify theme dev` (product `rr-trainer-low`, 7 assigned companions); R4 is implemented against the token sheet but hasn't been compared side-by-side with the reference mockup yet. What's left: a full browser QA pass (§7 — cart drawer, the isolation race condition, keyboard, responsive, and two variant-mode edge cases the current catalog can't exercise), then the three deliverables below. Architecture decisions and their rationale live in [cross-sell-widget.md](cross-sell-widget.md).
 
 ---
 
@@ -44,12 +44,12 @@
 ### 2.2 Placement (R2)
 > Updated for Horizon: this theme has **no `main-product.liquid`**. The PDP is `sections/product-information.liquid`, which renders `{% content_for 'blocks' %}` and accepts `@theme`, so a public theme block can be positioned anywhere in the product column from the editor — with zero base **source** files modified.
 
-- [x] Implement as a **public theme block** (`blocks/cross-sell.liquid`), placeable as the next sibling of `buy-buttons` inside the product details group.
+- [x] Implement as a **public theme block** (`blocks/rr-cross-sell.liquid`), placeable as the next sibling of `buy-buttons` inside the product details group.
 - [x] Ship a `templates/product.json` preset with the block already positioned below Add to Cart — `cross_sell_mwTMrk` is the last entry in `_product-details`'s `block_order`, right after `buy_buttons_eYQEYi`.
 - [x] Document the exact theme files touched — zero Horizon **source** files touched, beyond additive schema-locale keys. `templates/product.json` also changed, but that's merchant configuration written by the theme editor, not theme code — it doesn't count against the "zero source files" claim.
 
 ### 2.3 Markup & rendering
-- [x] `snippets/cross-sell-card.liquid` — one product card.
+- [x] `snippets/rr-cross-sell-card.liquid` — one product card.
 - [x] Server-rendered in Liquid. **No client-side product fetch** — the data is already on the page.
 - [x] Read the assignment through `closest.product`, not the global `product`.
 - [x] Card contents, per the design: product image · title · price · option selector · ADD button.
@@ -62,7 +62,7 @@
 ### 2.4 Carousel
 - [x] CSS **scroll-snap** + `overflow-x: auto`. Zero third-party libraries.
 - [x] Prev/Next arrows, top-right, matching the design.
-- [x] Arrow **disabled state** when at either end (the reference shows the left arrow greyed out) — via `aria-disabled`, updated by `assets/cross-sell.js`.
+- [x] Arrow **disabled state** when at either end (the reference shows the left arrow greyed out) — via `aria-disabled`, updated by `assets/rr-cross-sell.js`.
 - [x] Works with touch swipe, trackpad, keyboard (Tab/Arrow keys), and with JS disabled (still scrollable) — the scroller itself is plain CSS scroll-snap; arrows are progressive enhancement only.
 - [x] Hide scrollbar visually but keep it accessible — `scrollbar-width: none` + the scroller keeps `tabindex="0"` and an `aria-label`.
 
@@ -79,12 +79,12 @@
 - [x] Implement against the token sheet in [../design-tokens.md](../design-tokens.md).
 - [x] All interaction states built: default · hover · focus-visible · active · disabled · loading · success.
 - [x] Mobile layout designed deliberately (no mobile comp was given — see recommendations) — token scale steps down at 1199px and 749px; arrows hide below 749px.
-- [x] Zero layout shift: reserve image aspect ratio, fixed card height.
+- [x] Zero layout shift: reserve image aspect ratio; card height sizes to content (no forced uniform height across a row).
 
 > Built against spec, but not yet held up against [../design-mockup.png](../design-mockup.png) side-by-side in a browser — that comparison is the open item behind R4 above.
 
 ### 2.7 Quality gates
-- [ ] **Performance:** no external JS/CSS ✓ · CSS scoped to the block via `{% stylesheet %}` ✓ · JS shipped as an ES module, no framework ✓ · `loading="lazy"` + `srcset`/`sizes` on card images ✓ — but `assets/cross-sell.js` measures **~8.4 KB** raw, over the ~3 KB target set in this plan (most of it is the inline rationale comments documented throughout the file); not yet measured minified/gzipped or checked against a Lighthouse run.
+- [ ] **Performance:** no external JS/CSS ✓ · CSS in its own scoped asset, `assets/rr-cross-sell.css`, loaded via `asset_url | stylesheet_tag` ✓ (see [cross-sell-widget.md](../features/cross-sell-widget.md) *Styling* for why this departs from Horizon's `{% stylesheet %}` convention) · JS shipped as an ES module, no framework ✓ · `loading="lazy"` + `srcset`/`sizes` on card images ✓ — but `assets/rr-cross-sell.js` measures **~8.4 KB** raw, over the ~3 KB target set in this plan (most of it is the inline rationale comments documented throughout the file); not yet measured minified/gzipped or checked against a Lighthouse run, and the new CSS request isn't yet weighed against the request saved by no longer inlining it in the block.
 - [x] **Accessibility (WCAG 2.1 AA):** labelled select, `aria-label` on arrows, `aria-live` region announcing "Added to cart", visible focus rings — all structurally in place and code-verified (live region confirmed 7/7). A full keyboard-only walkthrough is still open, see §7.
 - [x] **i18n:** every visible string through `| t` with keys in `locales/*.json`. No hardcoded copy — 5 new schema keys, translated across all 20 locale files (`en` + 19 others); no new storefront-facing keys needed.
 - [x] **Merchant settings** in the schema: heading text, products-per-view, show/hide price — plus `max_products`, not originally scoped.

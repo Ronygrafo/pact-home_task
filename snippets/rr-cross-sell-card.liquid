@@ -18,7 +18,7 @@
   @param {boolean} show_price - Whether to render the price row.
 
   @example
-  {% render 'cross-sell-card', product: companion, block_id: block.id, index: forloop.index, section_id: section.id, show_price: true %}
+  {% render 'rr-cross-sell-card', product: companion, block_id: block.id, index: forloop.index, section_id: section.id, show_price: true %}
 {%- enddoc -%}
 
 {% liquid
@@ -71,7 +71,7 @@
   assign card_image = variant.featured_media.preview_image | default: product.featured_image
 
   # Mirrors snippets/add-to-cart-button.liquid:14-17: the ADD button's fly-to-cart animation
-  # source image, kept in sync with the currently selected variant by assets/cross-sell.js's
+  # source image, kept in sync with the currently selected variant by assets/rr-cross-sell.js's
   # #syncOptionSelection when a companion has a size/option control.
   assign product_variant_media = variant.featured_media.preview_image | image_url: width: 100
   if variant.featured_media.preview_image == blank
