@@ -119,6 +119,7 @@ Three tiers, aligned to the theme's own **750px / 1200px** breakpoints (§2), no
 | `--cs-space-header` | `32px` | `24px` | | Section heading → carousel |
 | `--cs-control-h` | `56px` | `48px` | | Select and ADD height — exceeds the theme's `--minimum-touch-target: 44px` (`theme-styles-variables.liquid:637`) at every tier |
 | `--cs-media-w` | `100px` | `84px` | `76px` | Image column width |
+| `--cs-card-min-h` | `180px` | | `200px` | Card minimum height — floors short cards (no select) to the height of a full one |
 | `--cs-add-min-w` | `80px` | `72px` | | Minimum width reserved for the ADD button inside the content column |
 | `--cs-card-w` | `clamp(300px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 420px)` | `clamp(248px, …, 400px)` | `clamp(240px, …, 340px)` | Card width; resolves to the visible-cards ratio (§2, §10) |
 | `--cs-border-w` | `1px` | | | Resting border |
@@ -147,7 +148,7 @@ Mono, uppercase, tracked, `--cs-ink`, left-aligned. Arrows pinned right on the s
 - Hidden below 750px — swipe carries it there.
 
 ### Card
-`--cs-surface`, radius 0, no border, no shadow. CSS grid: `grid-template-columns: var(--cs-media-w) minmax(0, 1fr)`, items centred vertically.
+`--cs-surface`, radius 0, no border, no shadow. CSS grid: `grid-template-columns: var(--cs-media-w) minmax(0, 1fr)`, items centred vertically. The card also carries `min-block-size: var(--cs-card-min-h)`, with the content centred in any leftover space via `align-content: center` — so a card without a `<select>` (e.g. `choice_mode: 'none'` or `'link'`) never sits shorter than its neighbours in the same carousel.
 
 ### Product image
 `aspect-ratio: 1 / 1`, `object-fit: contain`, sits on the card surface with no wrapper background. `loading="lazy"`, `srcset` at 1x/2x of the rendered size, explicit `width`/`height` to prevent CLS.
@@ -258,6 +259,7 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
   --cs-per-view:       1.3;
   --cs-card-w:         clamp(300px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 420px);
   --cs-media-w:        100px;
+  --cs-card-min-h:     180px;
   --cs-control-h:      56px;
   --cs-add-min-w:      80px;
   --cs-gap-card:       10px;
@@ -317,6 +319,7 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
     --cs-card-w:    clamp(240px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px);
     --cs-media-w:   76px;
     --cs-gap-media: 10px;
+    --cs-card-min-h: 200px;
   }
 }
 

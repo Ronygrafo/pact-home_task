@@ -151,6 +151,8 @@ Tokens scale per breakpoint rather than assuming one fixed card-column width, be
 
 The `[select | ADD]` controls row collapses to a stacked layout via a **container query** (`@container cross-sell-card (max-width: 200px)`), not a media query — the card's own inline size is what decides whether the row still fits, and the card also narrows independently of the viewport whenever the merchant raises `products_per_view`. A viewport breakpoint can't see that; the container query can.
 
+Cards are floored to a minimum height (`--cs-card-min-h`, `min-block-size` on `.cross-sell-card`) so that a companion rendering in `none` or `link` mode — no `<select>`, therefore a shorter content column — doesn't sit visibly lower than a neighbour that has one. The floor is `180px` on desktop and steps **up** to `200px` below 750px, which looks inverted but isn't: under 750px the card's content column falls beneath the container query's 200px threshold, the controls row stacks (48px select + 10px gap + 48px ADD), and a real card lands around 200px there. Both values are calibrated to the tallest realistic card of their tier, so the floor never inflates a normal one. `.cross-sell-card` pairs this with `align-content: center` rather than `start`, so the slack a short card gains is split evenly above and below instead of pooling under the content — safe because `.cross-sell__scroller` keeps `align-items: start`, meaning any extra height always comes from the card's own minimum and never borrowed from a taller sibling in the row.
+
 Motion is transition on `color` / `background-color` / `box-shadow` only, wrapped in `prefers-reduced-motion`.
 
 ### Translations

@@ -41,6 +41,12 @@
   --cs-gap-card: 10px;
   --cs-card-w: clamp(300px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 420px);
   --cs-media-w: 100px;
+  /* Floor, not a target. A typical card at this tier already lands around ~170px
+     (media 100px + 2 × 16px padding = 132px; content column ≈ 138px — a 2-line
+     title, price, and a 56px controls row — plus the same padding ≈ 170px). 180px
+     just lifts the short cards (choice_mode: 'none' or 'link', no <select>) up to
+     that height without inflating a normal one. */
+  --cs-card-min-h: 180px;
   --cs-control-h: 56px;
   --cs-add-min-w: 80px;
   --cs-pad-card: 16px;
@@ -168,16 +174,18 @@
   display: grid;
   grid-template-columns: var(--cs-media-w) minmax(0, 1fr);
   align-items: center;
-  /* Defensive, not load-bearing under the current layout: with .cross-sell__scroller now
-     sizing each .cross-sell__item to its content (align-items: start), this card is never
-     handed a block-size taller than its own single implicit row, so there's no extra row
-     height for `normal` (stretch) to distribute. Kept explicit so that if any future ancestor
-     ever does impose a taller box again, the row still won't stretch — align-items: center
-     stays free to do its real job, vertically centering the 100px media against the taller
-     body column, without also re-centering the whole card in leftover space. */
-  align-content: start;
+  /* The card now carries its own min-block-size, so the grid's implicit row can end up
+     shorter than the card box itself (a short, no-select card against the --cs-card-min-h
+     floor). `center` splits that leftover space evenly above and below, which is what makes
+     a short card read as intentional rather than pinned to the top. This is safe against
+     .cross-sell__scroller's align-items: start (above): the sibling row never lends this
+     card extra height, so any slack `center` distributes always comes from the card's own
+     min-block-size, never from a taller neighbour. Once content exceeds the minimum, `center`
+     has nothing to distribute and the card grows with its content exactly as before. */
+  align-content: center;
   gap: var(--cs-gap-media);
   padding: var(--cs-pad-card);
+  min-block-size: var(--cs-card-min-h);
   background-color: var(--cs-surface);
   border-radius: var(--cs-radius);
 }
@@ -432,6 +440,12 @@
     --cs-card-w: clamp(240px, calc((100% - var(--cs-gap-card)) / var(--cs-per-view)), 340px);
     --cs-media-w: 76px;
     --cs-gap-media: 10px;
+    /* Steps up, not down: below 750px the card's content column drops under the
+       controls-row container query's 200px threshold (§6), so the row stacks
+       (select 48px + 10px gap + ADD 48px = 106px) and a real card lands around
+       ~200px. The floor is calibrated to that stacked state, not to the viewport
+       getting narrower. */
+    --cs-card-min-h: 200px;
   }
 
   .cross-sell__controls {
