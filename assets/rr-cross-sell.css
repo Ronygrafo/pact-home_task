@@ -4,14 +4,35 @@
   docs/design-tokens.md — this file is the CSS implementation of that spec.
 */
 .cross-sell {
+  /*
+    Color tokens inherit from the theme's own palette (snippets/color-palette.liquid, rendered
+    once at :root in layout/theme.liquid) so the widget follows whatever color scheme the
+    merchant sets, instead of shipping its own. Every var() keeps the current hex as its
+    fallback, so a theme that doesn't expose these custom properties still renders unchanged.
+    --cs-surface is the one deliberate exception: the light-grey card background is this
+    design's own surface, not a theme color, so it stays hardcoded (see below).
+  */
   --cs-surface: #f4f4f4;
-  --cs-surface-field: #fff;
-  --cs-ink: #111;
-  --cs-ink-muted: #6b6b6b;
-  --cs-ink-disabled: #b3b3b3;
-  --cs-border: #d0d0d0;
-  --cs-border-strong: #111;
-  --cs-arrow-idle: #9e9e9e;
+  --cs-surface-field: var(--color-background, #fff);
+  --cs-ink: var(--color-foreground, #111);
+  /* Alpha values are calibrated against the theme's current foreground (#000) to land on the
+     same grays the design shipped with (#6b6b6b / #b3b3b3 / #9e9e9e on a white surface) — not
+     picked from a named --opacity-* token. --color-foreground-rgb's fallback mirrors --cs-ink's
+     #111 fallback as an "R G B" triplet. */
+  --cs-ink-muted: rgb(var(--color-foreground-rgb, 17 17 17) / 0.58);
+  --cs-ink-disabled: rgb(var(--color-foreground-rgb, 17 17 17) / 0.3);
+  --cs-border: var(--color-input-border, #d0d0d0);
+  --cs-border-strong: var(--color-foreground, #111);
+  --cs-arrow-idle: rgb(var(--color-foreground-rgb, 17 17 17) / 0.38);
+  /* ADD button only: the text color that reads against the button's own dark fill, not the
+     card's light surface — kept separate from --cs-ink on purpose. Maps to the theme's primary
+     button text color (assets/base.css uses the same --color-primary-button-* trio). */
+  --cs-ink-invert: var(--color-primary-button-text, #fff);
+  /* ADD button hover fill. Deliberately NOT var(--color-primary-button-hover-background): Horizon
+     derives that value through util-palette-hover-shift, which *lightens* a near-black source by
+     ~15% — the opposite direction of this design's subtle darken-on-hover. Kept literal so the
+     hover state doesn't regress. */
+  --cs-button-hover-bg: #000;
 
   /*
     There is no --cs-font-* token: the two faces come straight from the theme's own settings
@@ -352,7 +373,7 @@
   font-weight: 500;
   letter-spacing: var(--cs-track-label);
   text-transform: uppercase;
-  color: #fff;
+  color: var(--cs-ink-invert);
   background-color: var(--cs-ink);
   transition-property: color, background-color, box-shadow;
   transition-duration: var(--cs-dur);
@@ -360,7 +381,7 @@
 }
 
 .cross-sell .cross-sell-card__add:hover {
-  background-color: #000;
+  background-color: var(--cs-button-hover-bg);
 }
 
 .cross-sell .cross-sell-card__add:focus-visible {
@@ -405,7 +426,7 @@
 .cross-sell .cross-sell-card__add--link,
 .cross-sell .cross-sell-card__add--link:visited {
   text-decoration: none;
-  color: #fff;
+  color: var(--cs-ink-invert);
 }
 
 /* Empty-state placeholder (design mode only, unassigned metafield) */

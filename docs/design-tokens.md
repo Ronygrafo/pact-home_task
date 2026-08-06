@@ -52,24 +52,34 @@ The *proportions* read from the comp (image ÷ card, gap ÷ card, the type-scale
 
 ## 3 · Colour tokens
 
-Monochrome, five values, no accents.
+Monochrome, no accents. **The widget owns almost none of these values.** Colour resolves from the theme's own palette (`snippets/color-palette.liquid`, rendered once at `:root`), so the block follows whatever scheme the merchant sets rather than shipping a palette of its own — the same principle already applied to typography in §4. Every token keeps its original hex as a `var()` fallback, so a theme that doesn't expose these properties still renders exactly as specified here.
 
-| Token | Value | Use | Contrast |
-|---|---|---|---|
-| `--cs-bg` | `#FFFFFF` | Section / page background | — |
-| `--cs-surface` | `#F4F4F4` | Card background | — |
-| `--cs-surface-field` | `#FFFFFF` | Select & button background | — |
-| `--cs-ink` | `#111111` | Headings, product name, price, active borders, active arrow | 16.5:1 on surface ✅ |
-| `--cs-ink-muted` | `#6B6B6B` | Secondary copy, helper text | 5.3:1 on white ✅ |
-| `--cs-ink-disabled` | `#B3B3B3` | Disabled `ADD` label | ~2.0:1 ⚠️ |
-| `--cs-border` | `#D0D0D0` | Resting select / button border | ~1.5:1 (up from ~1.2:1) |
-| `--cs-border-strong` | `#111111` | Focus / active border, 2px | — |
-| `--cs-arrow-idle` | `#9E9E9E` | Disabled carousel arrow | — |
+| Token | Theme source | Fallback | Resolves to on this store | Contrast |
+|---|---|---|---|---|
+| `--cs-bg` | *(page)* | — | `#FFFFFF` | — |
+| `--cs-surface` | **none — deliberate** | — | `#F4F4F4` | — |
+| `--cs-surface-field` | `--color-background` | `#FFF` | `#FFFFFF` | — |
+| `--cs-ink` | `--color-foreground` | `#111` | `#000000` | 19.1:1 on surface ✅ |
+| `--cs-ink-muted` | `--color-foreground-rgb` @ 58% | `17 17 17` | `#6B6B6B` | 5.3:1 on white ✅ |
+| `--cs-ink-disabled` | `--color-foreground-rgb` @ 30% | `17 17 17` | `#B3B3B3` | ~2.0:1 ⚠️ |
+| `--cs-border` | `--color-input-border` | `#D0D0D0` | `#D0D0D0` | ~1.5:1 ⚠️ |
+| `--cs-border-strong` | `--color-foreground` | `#111` | `#000000` | — |
+| `--cs-arrow-idle` | `--color-foreground-rgb` @ 38% | `17 17 17` | `#9E9E9E` | — |
+| `--cs-ink-invert` | `--color-primary-button-text` | `#FFF` | `#FFFFFF` | — |
+| `--cs-button-hover-bg` | **none — deliberate** | — | `#000000` | — |
 
-**One flag resolved into a stated decision, one left as-is:**
+The three alpha values are calibrated against the current foreground (`#000`) to land on exactly the greys the design specified — `#6B6B6B`, `#B3B3B3`, `#9E9E9E` composited on white — rather than picked from a named `--opacity-*` token.
 
-- `--cs-border` moves from `#E3E3E3` (~1.2:1 against white) to `#D0D0D0` (~1.5:1). That's a real step up, but read as an isolated stroke against the white field it still sits under the literal **WCAG 1.4.11** threshold (3:1 for a non-text UI boundary when the border is the only thing marking the control) — reaching that in full would need something close to `#767676` (~4.5:1), at real cost to the light aesthetic the reference specifies. The resting select in this spec is never delimited by the stroke alone, though: the white field sits on the grey `--cs-surface` card (§6, *Select*), so the boundary is also carried by a surface-colour change, and the state that actually needs to be unmistakable — the 2px `--cs-border-strong` focus/active border — already clears contrast by a wide margin. This is now a settled, documented trade-off rather than a question for the client.
-- `--cs-ink-disabled` at ~2:1 stays a stated decision, not an oversight: disabled controls are exempt from WCAG 1.4.3, so reproducing the comp's low-contrast disabled label is defensible.
+**Two values stay hardcoded, on purpose:**
+
+- `--cs-surface`, the light-grey card background. It's this design's own surface, not a theme colour: mapping it to a scheme background would erase the card/field distinction the whole layout rests on.
+- `--cs-button-hover-bg`. Horizon derives `--color-primary-button-hover-background` through `snippets/util-palette-hover-shift.liquid`, which *lightens* a near-black source by ~15% — the opposite direction of this design's darken-on-hover. Mapping it would have inverted the interaction.
+
+**Two flags resolved into stated decisions:**
+
+- `--cs-border` is specified at `#D0D0D0` (~1.5:1 against white), itself a deliberate step up from an earlier `#E3E3E3` (~1.2:1). Inheriting `--color-input-border` first resolved it to `#DFDFDF` (~1.3:1), giving back most of that step — so rather than hardcoding an exception, the store's `color_palette.color2` was set to `#D0D0D0`. The theme now *supplies* the specified value, the widget keeps inheriting, and every other input, divider and variant border in the theme moves to the same stroke. That is the same move the reference match rests on throughout: configure Horizon's globals, let the block follow.
+- Read as an isolated stroke against the white field, `#D0D0D0` still sits under the literal **WCAG 1.4.11** threshold (3:1 for a non-text UI boundary when the border is the only thing marking the control) — reaching that would need something near `#767676` (~4.5:1), at real cost to the light aesthetic the reference specifies. The resting select is never delimited by the stroke alone, though: the white field sits on the grey `--cs-surface` card (§6, *Select*), so the boundary is also carried by a surface-colour change, and the state that must be unmistakable — the 2px `--cs-border-strong` focus/active border — clears contrast by a wide margin. A settled, documented trade-off rather than a question for the client.
+- `--cs-ink-disabled` at ~2:1 stays a stated decision, not an oversight: disabled controls are exempt from WCAG 1.4.3, so reproducing the comp's low-contrast disabled label is defensible. The 30% alpha reproduces it exactly.
 
 ---
 
@@ -232,16 +242,18 @@ Keep the horizontal card layout on mobile. Flipping to a stacked card doubles th
 
 ```css
 .cross-sell {
-  /* Colour */
-  --cs-bg:              #ffffff;
+  /* Colour — inherited from the theme's palette, original hex kept as fallback (§3).
+     --cs-surface and --cs-button-hover-bg are the two deliberate exceptions. */
   --cs-surface:         #f4f4f4;
-  --cs-surface-field:   #ffffff;
-  --cs-ink:             #111111;
-  --cs-ink-muted:       #6b6b6b;
-  --cs-ink-disabled:    #b3b3b3;
-  --cs-border:          #d0d0d0;
-  --cs-border-strong:   #111111;
-  --cs-arrow-idle:      #9e9e9e;
+  --cs-surface-field:   var(--color-background, #fff);
+  --cs-ink:             var(--color-foreground, #111);
+  --cs-ink-muted:       rgb(var(--color-foreground-rgb, 17 17 17) / 0.58);
+  --cs-ink-disabled:    rgb(var(--color-foreground-rgb, 17 17 17) / 0.3);
+  --cs-border:          var(--color-input-border, #d0d0d0);
+  --cs-border-strong:   var(--color-foreground, #111);
+  --cs-arrow-idle:      rgb(var(--color-foreground-rgb, 17 17 17) / 0.38);
+  --cs-ink-invert:      var(--color-primary-button-text, #fff);
+  --cs-button-hover-bg: #000;
 
   /* Type — ≥1200px tier (536–656px column, §2) */
   /* No --cs-font-* token: both faces read straight from the theme's own
